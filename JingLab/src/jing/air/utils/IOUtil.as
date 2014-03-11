@@ -280,22 +280,6 @@ package jing.air.utils
 			return xml;
 		}
 		
-		/**
-		 * 通过完整路径读取一个XML文件(不可使用相对路径) 
-		 * @param fileName
-		 * @param path
-		 * @return 
-		 * 
-		 */	
-		static public function readXMLFileDirect(filePath:String):XML
-		{
-			var xmlBA:ByteArray = readFileDirect(filePath);
-			var xmlStr:String = xmlBA.readUTFBytes(xmlBA.bytesAvailable);
-			var xml:XML = new XML(xmlStr);
-			return xml;
-		}
-		
-		
 		/*
 		********************************************************
 		* 文件选择部分
