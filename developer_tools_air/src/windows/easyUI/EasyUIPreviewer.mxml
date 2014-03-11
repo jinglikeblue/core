@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Window xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx" renderMode="direct" title="EasyUIPreviewer" backgroundAlpha="0" width="1000" height="600" showStatusBar="false" creationComplete="window_creationCompleteHandler(event)">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			import mx.events.MenuEvent;
+			import mx.managers.PopUpManager;
+			
+			import jing.easyGUI.Unpackager;
+			import jing.easyGUI.displays.JSprite;
+			
+			import starling.core.Starling;
+			import starling.textures.Texture;
+			import starling.textures.TextureAtlas;
+			
+			import windows.easyUI.utils.UIAssets;
+			import windows.easyUI.views.AssetsSelectWindow;
+			import windows.easyUI.views.AssetsShowWindow;
+			import windows.easyUI.views.Preview;
+			
+			
+			
+			
+			private var _starling:Starling;
+			
+			protected function window_creationCompleteHandler(event:FlexEvent):void
+			{
+				_starling = new Starling(Preview, stage, new Rectangle(0, 0, this.width,this.height));
+				_starling.viewPort = new Rectangle(0, 0, stage.stageWidth, stage.stageHeight);
+				_starling.stage3D.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
+				//_starling.showStats = true;
+				//_starling.showStatsAt(HAlign.RIGHT, VAlign.BOTTOM, 2);
+				_starling.start();
+			}
+			
+			private function onContextCreated(e:Event):void
+			{
+			
+			}
+			
+			protected function onMenuChange(event:MenuEvent):void
+			{
+				
+			}
+			
+			protected function _menuBar_changeHandler(event:MenuEvent):void
+			{
+				// TODO Auto-generated method stub
+				trace(event.label);
+				trace(event.item.@data);
+				var funStr:String = event.item.@data.toString();
+				switch(funStr)
+				{
+					case "previewGUI":
+						var win:AssetsSelectWindow = new AssetsSelectWindow();
+						PopUpManager.addPopUp(win,this,false);
+						PopUpManager.centerPopUp(win);
+						win.addEventListener(Event.COMPLETE, win_completeHandler);
+						break;
+				}
+			}
+			
+			private function win_completeHandler(e:Event):void
+			{
+				var win:AssetsSelectWindow = e.currentTarget as AssetsSelectWindow;
+				win.removeEventListener(Event.COMPLETE, win_completeHandler);
+				
+				var ta:TextureAtlas = new TextureAtlas(Texture.fromBitmapData(win.getImgData()),win.getXML());
+				var unpackger:Unpackager = new Unpackager();
+				var dic:Dictionary = unpackger.unpackageXML2SpriteVODic(win.getGUIXML());
+				
+				for (var sprName:String in dic)
+				{
+					var spr:JSprite = new JSprite(dic[sprName],ta);
+					spr.y = 50;
+					Starling.current.stage.addChild(spr);
+				}
+//				UIAssets.registPackage("test",dic,ta);
+
+				
+//				win = new AssetsShowWindow();
+				PopUpManager.createPopUp(this,AssetsShowWindow);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<fx:XML format="e4x" id="_menuData">
+			<root>
+				<menuitem label="文件" >
+					<menuitem label="预览GUI" data="previewGUI"/>
+				</menuitem>
+				<menuitem label="帮助" >
+					<menuitem label="关于" data="about"/>
+				</menuitem>
+			</root>
+		</fx:XML>
+	</fx:Declarations>
+	<mx:MenuBar id="_menuBar" width="100%" dataProvider="{_menuData}" showRoot="false" labelField="@label" change="_menuBar_changeHandler(event)" />
+</s:Window>

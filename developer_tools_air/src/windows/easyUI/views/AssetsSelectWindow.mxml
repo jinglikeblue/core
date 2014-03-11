@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="300" close="titlewindow1_closeHandler(event)" title="选择GUI相关资源">
+	<fx:Script>
+		<![CDATA[
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			
+			import jing.air.utils.IOUtil;
+			import jing.loader.DisplayLoader;
+			
+			private var _guiXMLFile:File;
+			private var _imgFile:File;
+			private var _xmlFile:File;
+			
+			private var _imgBMD:BitmapData;
+			private var _loader:Loader;
+			
+			public function getGUIXML():XML
+			{
+				return IOUtil.readXMLFileDirect(_guiXMLFile.nativePath);
+			}
+			
+			public function getImgData():BitmapData
+			{
+				return _imgBMD;
+			}
+			
+			public function getXML():XML
+			{
+				return IOUtil.readXMLFileDirect(_xmlFile.nativePath);
+			}
+			
+			protected function titlewindow1_closeHandler(event:CloseEvent):void
+			{
+				// TODO Auto-generated method stub
+				PopUpManager.removePopUp(this);
+			}
+			
+			protected function _btnSelectGUI_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				IOUtil.selectFile(onGUIXMLSelected, "选择GUI的XML", new FileFilter("xml", "*.xml"));
+			}
+			
+			private function onGUIXMLSelected(file:File):void
+			{
+				_guiXMLFile = file;
+				update();
+			}
+			
+			protected function _btnSelectTextureBMD_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				IOUtil.selectFile(onImageSelected, "选择纹理图片", new FileFilter("图片", "*.png"));
+			}
+			
+			private function onImageSelected(file:File):void
+			{
+				_imgFile = file;
+				var dl:DisplayLoader = new DisplayLoader(new URLRequest(_imgFile.nativePath));
+				dl.addEventListener(Event.COMPLETE, dl_completeHandler);
+				dl.load();
+			}
+			
+			protected function dl_completeHandler(e:Event):void
+			{
+				var dl:DisplayLoader = e.currentTarget as DisplayLoader;
+				dl.removeEventListener(Event.COMPLETE, dl_completeHandler);
+				_imgBMD = (dl.displayObject as Bitmap).bitmapData;
+				update();
+			}
+			
+			protected function _btnSelectTextureXML_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				IOUtil.selectFile(onXMLSelected, "选择纹理XML", new FileFilter("xml", "*.xml"));
+			}
+			
+			private function onXMLSelected(file:File):void
+			{
+				_xmlFile = file;
+				update();
+			}
+			
+			private function update():void
+			{
+				if(_guiXMLFile && _imgFile && _xmlFile && _imgBMD)
+				{
+					_btnSubmit.enabled = true;
+				}
+			}
+			
+			protected function _btnSubmit_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.dispatchEvent(new Event(Event.COMPLETE));
+				PopUpManager.removePopUp(this);
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<s:VGroup paddingLeft="10" paddingTop="10">
+		<s:Button id="_btnSelectGUI" label="选择GUI的XML" click="_btnSelectGUI_clickHandler(event)" />
+		<s:Label text="资源需满足Starling的TextureAtlas规格" color="0xFF0000" />
+		<s:Button id="_btnSelectTextureBMD" label="选择资源纹理图片" click="_btnSelectTextureBMD_clickHandler(event)" />
+		<s:Button id="_btnSelectTextureXML" label="选择资源的描述XML" click="_btnSelectTextureXML_clickHandler(event)" />
+		
+		<s:Button id="_btnSubmit" label="提交" click="_btnSubmit_clickHandler(event)" enabled="false" />
+	</s:VGroup>
+</s:TitleWindow>

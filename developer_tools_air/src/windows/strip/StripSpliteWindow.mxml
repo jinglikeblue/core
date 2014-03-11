@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Window xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx" title="帧动画分离器" width="1000" height="600">
+	<fx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			
+			import spark.events.TextOperationEvent;
+			
+			import jing.air.utils.IOUtil;
+			import jing.turbo.strip.StripFactory;
+			import jing.utils.data.StringUtil;
+			import jing.utils.file.FileUtil;
+			
+			protected function _txtFrameCount_changeHandler(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				var uw:int = int(_txtUnitW.text);
+				var frameCount:int = int(_txtFrameCount.text);
+				if(0 == uw && _image.bitmapData)
+				{
+					uw = _image.bitmapData.width / frameCount;
+				}
+				_txtUnitW.text = uw.toString();
+			}
+			
+			protected function _btnSelectStrip_clickHandler(event:MouseEvent):void
+			{
+				
+				IOUtil.selectFile(onSelectImg, "选择图片", new FileFilter("图片", "*.png"));
+			}
+			
+			private function onSelectImg(file:File):void
+			{
+				_btnPublish.enabled = false;
+				_txtPrefix.text = FileUtil.getFileNameWithouExtension(file.name);
+				_image.source = file.nativePath;
+			}
+			
+			protected function _image_completeHandler(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				if(_image.bitmapData)
+				{
+					_btnPublish.enabled = true;
+					_lbSource.text = StringUtil.format("原图宽高 {0}:{1}",_image.bitmapData.width,_image.bitmapData.height);
+					_txtUnitH.text = _image.bitmapData.height.toString();
+				}
+			}
+			
+			protected function _btnPublish_clickHandler(event:MouseEvent):void
+			{
+				IOUtil.selectDirectory(onSelectPublishDir,"选择发布目录");
+			}
+			
+			private function onSelectPublishDir(file:File):void
+			{
+				var prefix:String = _txtPrefix.text;
+				var uw:int = int(_txtUnitW.text);
+				var uh:int = int(_txtUnitH.text);
+				var frameCount:int = int(_txtFrameCount.text);
+				var bmds:Vector.<BitmapData> = StripFactory.createStripDatas(_image.bitmapData,uw,uh,frameCount,_ckTransparent.selected);	
+				for(var i:int = 0; i < bmds.length; i++)
+				{
+					var bmd:BitmapData = bmds[i];
+					var ba:ByteArray = bmd.encode(bmd.rect,new PNGEncoderOptions());
+					IOUtil.writeFile(prefix + i + ".png",file.nativePath,ba);
+				}
+				Alert.show("发布完成!","成功",4,this);
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<s:VGroup width="100%" height="100%">
+	<s:HGroup width="100%">
+		<s:Button label="选择图片" id="_btnSelectStrip" click="_btnSelectStrip_clickHandler(event)" />
+		<s:Label text="单图宽度" />
+		<s:TextInput restrict="0-9" id="_txtUnitW" text="0" />
+		<s:Label text="单图高度" />
+		<s:TextInput restrict="0-9" id="_txtUnitH" text="0"/>
+		<s:Label text="帧数" />
+		<s:TextInput restrict="0-9" id="_txtFrameCount" text="0" change="_txtFrameCount_changeHandler(event)"/>
+		<s:CheckBox label="是否透明" id="_ckTransparent" selected="true" />
+	</s:HGroup>
+		<s:HGroup>
+			<s:Label text="发布名称前缀" />
+			<s:TextInput id="_txtPrefix"/>
+			<s:Button label="发布图片" id="_btnPublish" click="_btnPublish_clickHandler(event)" enabled="false" />
+			<s:Label id="_lbSource" text="" />
+		</s:HGroup>
+	<s:Image width="100%" height="100%" id="_image" complete="_image_completeHandler(event)" scaleMode="letterbox" />
+	</s:VGroup>
+</s:Window>

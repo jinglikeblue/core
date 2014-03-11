@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009"
+          xmlns:s="library://ns.adobe.com/flex/spark"
+          xmlns:mx="library://ns.adobe.com/flex/mx"
+          width="400">
+
+    <fx:Script>
+        <![CDATA[
+            import mx.controls.Alert;
+
+            import spark.components.Window;
+
+            import jing.air.utils.IOUtil;
+            import jing.easyGUI.Packager;
+            import jing.easyGUI.events.PackagerEvent;
+            import jing.utils.file.FileUtil;
+
+            import windows.easyUI.EasyUIPreviewer;
+
+            private var _file:File;
+
+            private var _packager:Packager;
+
+            protected function _btnPublish_clickHandler(event:MouseEvent):void
+            {
+                IOUtil.selectFile(onSelectSWF, "选择swf", new FileFilter("swf", "*.swf"));
+            }
+
+            private function onSelectSWF(file:File):void
+            {
+                _file = file;
+                var fileName:String = FileUtil.getFileNameWithouExtension(_file.name);
+                var ba:ByteArray = IOUtil.readFileDirect(file.nativePath);
+                _packager = new Packager();
+                _packager.addEventListener(PackagerEvent.COMPLETE, _packager_completeHandler);
+                _packager.packageSWF2XML(ba, fileName);
+            }
+
+            private function _packager_completeHandler(e:PackagerEvent):void
+            {
+                var ba:ByteArray = new ByteArray();
+                ba.writeUTFBytes(e.guiXML.toXMLString());
+
+                var filePath:String = _file.parent.resolvePath(e.guiXML.localName() + ".xml").nativePath;
+                IOUtil.writeFileDirect(filePath, ba);
+                Alert.show("发布成功:" + filePath);
+            }
+
+            protected function _btnPreview_clickHandler(event:MouseEvent):void
+            {
+                var window:Window = new EasyUIPreviewer();
+                window.open();
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- 将非可视元素（例如服务、值对象）放在此处 -->
+    </fx:Declarations>
+    <s:HGroup>
+        <s:Button id="_btnPublish"
+                  label="发布EasyGUI"
+                  click="_btnPublish_clickHandler(event)"
+                  buttonMode="true"/>
+        <s:Button id="_btnPreview"
+                  label="EasyGUI预览器"
+                  click="_btnPreview_clickHandler(event)"
+                  buttonMode="true"/>
+    </s:HGroup>
+</s:VGroup>
