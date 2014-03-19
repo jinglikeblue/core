@@ -1,5 +1,7 @@
 package jing.air.utils
 {
+	import avmplus.getQualifiedClassName;
+	
 	import flash.events.Event;
 	import flash.events.FileListEvent;
 	import flash.filesystem.File;
@@ -12,8 +14,6 @@ package jing.air.utils
 	import flash.utils.Dictionary;
 	import flash.utils.describeType;
 	import flash.utils.getDefinitionByName;
-	
-	import avmplus.getQualifiedClassName;
 	
 	public class IOUtil
 	{			
@@ -116,7 +116,7 @@ package jing.air.utils
 		 * @return 
 		 * 
 		 */		
-		static public function readObjectFromFile(fileName:String, path:String, classObject:Class):Object
+		static public function readObjectFromFile(fileName:String, path:String, classObject:Class = null):Object
 		{
 			registClassAlias(classObject);
 			var ba:ByteArray = readFile(fileName,path);

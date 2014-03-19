@@ -7,9 +7,22 @@ package jing.audio
 	 */	
 	public class AudioSetting
 	{
-		public function AudioSetting():void
+		/**
+		 *  
+		 * @param type  声音的类型(用来区分背景、效果、人声等的标识) 
+		 * @param track 声音的轨道(不同轨道的声音可以并存播放，一个轨道同一时间只能播放一种声音),一次最多可以使用32个音轨
+		 * @param isLoop 声音是否循环播放 
+		 * @param volume 音量大小，为0和1之间的值
+		 * @param deep 声音的深度，声音的值乘以深度为最后播出的声音大小，默认为1 
+		 * 
+		 */		
+		public function AudioSetting(type:uint = 0, track:int = 0, isLoop:Boolean = false, volume:Number = 1, deep:Number = 1):void
 		{
-			
+			_type = type;
+			_track = track;
+			_isLoop = isLoop;
+			_volume = volume;
+			_deep = deep;
 		}
 		
 		private var _type:uint = 0;

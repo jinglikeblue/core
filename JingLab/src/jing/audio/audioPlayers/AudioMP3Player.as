@@ -8,9 +8,9 @@ package jing.audio.audioPlayers
     import flash.net.URLRequest;
     import flash.utils.getDefinitionByName;
     
+    import jing.audio.AudioInfoVO;
     import jing.audio.AudioSetting;
     import jing.audio.IAudioPlayer;
-    import jing.audio.AudioInfoVO;
 
     /**
      * MP3播放器
@@ -48,6 +48,11 @@ package jing.audio.audioPlayers
 		 * 是否正在播放中 
 		 */		
 		private var _isPlaying:Boolean = false;
+		
+		/**
+		 * 设备音量 
+		 */		
+		private var _deviceVolume:Number = 1;
 
         public function init(audioInfo:AudioInfoVO, audioSetting:AudioSetting):void
         {
@@ -56,6 +61,31 @@ package jing.audio.audioPlayers
             _audioSetting = audioSetting;
         }
 
+		/**
+		 * 设置设备音量 
+		 * @param deviceVolume
+		 * 
+		 */		
+		public function setDeviceVolume(deviceVolume:Number):void
+		{
+			_deviceVolume = deviceVolume;
+			if(_soundChannel != null)
+			{
+				_soundChannel.soundTransform = new SoundTransform(getSoundVolume());
+			}
+		}
+		
+		/**
+		 * 获取音量 
+		 * @return 
+		 * 
+		 */
+		[inline]
+		private function getSoundVolume():Number
+		{
+			var volume:Number = _audioSetting.volume * _audioSetting.deep * _deviceVolume;
+			return volume
+		}
 
         public function play():void
         {
@@ -77,7 +107,7 @@ package jing.audio.audioPlayers
 			}
             
             _sound.addEventListener(IOErrorEvent.IO_ERROR, _soundIOErrorHandler);
-            _soundChannel = _sound.play(0, 0, new SoundTransform(_audioSetting.volume * _audioSetting.deep));
+            _soundChannel = _sound.play(0, 0, new SoundTransform(getSoundVolume()));
 			if(null == _soundChannel)
 			{
 				return;
@@ -124,7 +154,7 @@ package jing.audio.audioPlayers
 					}
 					catch(e:Error)
 					{
-						trace("声音:" + _sound.url + "不用关闭");
+//						trace("声音:" + _sound.url + "不用关闭");
 					}
 				}
 			}

@@ -36,6 +36,11 @@ package jing.audio
 		 */		
 		private var _audioTrackDic:Dictionary;
 		
+		/**
+		 * 全局音量 
+		 */		
+		private var _volume:Number = 1;
+		
 		public function AudioDevice()
 		{
 			init();
@@ -73,22 +78,36 @@ package jing.audio
 		}
 		
 		/**
+		 * 设置全局音量 
+		 * @param value
+		 * 
+		 */		
+		public function setVolume(value:Number):void
+		{
+			_volume = value;
+			for each(var player:IAudioPlayer in _audioTrackDic)
+			{
+				player.setDeviceVolume(value);
+			}
+		}
+		
+		/**
 		 * 播放声音 
 		 * @param audioId
 		 * 
 		 */		
-		public function play(audioId:String, audioSetting:AudioSetting = null):void
+		public function play(audioId:String, audioSetting:AudioSetting = null):IAudioPlayer
 		{
 			var audioInfo:AudioInfoVO = _audioInfoDic[audioId];
 			if(null == audioInfo)
 			{
-				return;
+				return null;
 			}
 			
 			var playerCls:Class = _playerClassDic[audioInfo.playerName];
 			if(null == playerCls)
 			{
-				return;
+				return null;
 			}
 			
 			if(null == audioSetting)
@@ -103,10 +122,13 @@ package jing.audio
 			}
 			
 			var player:IAudioPlayer = new playerCls() as IAudioPlayer;
+			player.setDeviceVolume(_volume);
 			player.init(audioInfo,audioSetting);
 			player.play();
 			
 			_audioTrackDic[audioSetting.track] = player;
+			
+			return player;
 		}
 	}
 }

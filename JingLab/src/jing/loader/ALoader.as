@@ -37,6 +37,24 @@ package jing.loader
 		 * 尝试次数 
 		 */		
 		protected var _tryTime:int;
+		
+		private var _param:*;
+
+		/**
+		 * 携带的参数 
+		 */
+		public function get param():*
+		{
+			return _param;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set param(value:*):void
+		{
+			_param = value;
+		}
 
         /**
          * HTTP请求中所包含的信息

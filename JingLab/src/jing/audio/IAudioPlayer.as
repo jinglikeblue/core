@@ -38,5 +38,12 @@ package jing.audio
 		 * 
 		 */		
 		function dispose():void;
+		
+		/**
+		 * 设置设备音量 
+		 * @param deviceVolume
+		 * 
+		 */		
+		function setDeviceVolume(deviceVolume:Number):void;
 	}
 }
