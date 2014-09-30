@@ -13,7 +13,8 @@ package
 	{
 		public function Puzzle()
 		{
-			this.addChild(new Main());
+			stage.addChild(new Main());
+			stage.removeChild(this);
 		}
 	}
 }

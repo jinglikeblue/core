@@ -220,5 +220,17 @@ package jing.utils.data
 			}
 			return c;
 		}
+		
+		/**
+		 * 从数组中随机获取一个对象 
+		 * @param a
+		 * @return 
+		 * 
+		 */		
+		static public function getRandomObject(arr:Array):*
+		{
+			var randomIndex:int = int(Math.random() * arr.length);
+			return arr[randomIndex];
+		}
     }
 }

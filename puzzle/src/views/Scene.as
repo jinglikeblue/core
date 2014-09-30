@@ -26,7 +26,22 @@ package views
 		private function init():void
 		{
 			drawBG();
-			var puzzle:PuzzleMap = new PuzzleMap("assets/img.png", 2)
+			var puzzle:PuzzleMap = new PuzzleMap("assets/img.png", 3);
+			puzzle.addEventListener("passed", puzzle_passedHandler);
+			puzzle.y = (stage.stageHeight - 420) >> 1;
+			puzzle.x = (stage.stageWidth - 420) >> 1;
+			this.addChild(puzzle);
+		}
+		
+		private function puzzle_passedHandler(e:Event):void
+		{
+			var puzzle:PuzzleMap = e.currentTarget as PuzzleMap;
+			puzzle.removeEventListener("passed", puzzle_passedHandler);
+			this.removeChild(puzzle);
+			puzzle.dispose();
+			
+			puzzle = new PuzzleMap("assets/img.png", 3);
+			puzzle.addEventListener("passed", puzzle_passedHandler);
 			puzzle.y = (stage.stageHeight - 420) >> 1;
 			puzzle.x = (stage.stageWidth - 420) >> 1;
 			this.addChild(puzzle);

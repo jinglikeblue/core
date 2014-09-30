@@ -11,6 +11,7 @@ package views
     
     import models.PuzzleModel;
     
+    import starling.display.Image;
     import starling.display.Sprite;
     import starling.events.Touch;
     import starling.events.TouchEvent;
@@ -19,6 +20,8 @@ package views
     import starling.textures.Texture;
     
     import views.elements.Piece;
+    
+    import vos.PieceVO;
 
     /**
      * 拼图界面
@@ -134,7 +137,6 @@ package views
 			{
 				var piece:Piece = _pieces[i];
 				var pos:Point = _model.getPiecePos(piece.no);
-				trace(pos);
 				this.addChild(piece);
 				if(null != pos)
 				{						
@@ -170,8 +172,7 @@ package views
 					if(true == _model.move(no))
 					{
 						var pos:Point = _model.getPiecePos(no);
-						piece.moveTo(pos.x * _pieceSide, pos.y * _pieceSide, onPieceMoved);						
-						//this.touchable = false;
+						piece.moveTo(pos.x * _pieceSide, pos.y * _pieceSide, onPieceMoved);	
 					}
 				}
 				
@@ -179,12 +180,30 @@ package views
 		}
 		
 		private function onPieceMoved():void
-		{
-			//this.touchable = true;
+		{			
 			if(true == _model.checkPass())
 			{
-				trace("过关");
+				for each(var piece:Piece in _pieces)
+				{
+					this.removeChild(piece);
+				}
+				
+				var img:Image = new Image(_imgTexture);
+				this.addChild(img);
+				
+				this.dispatchEventWith("passed");
 			}
+		}
+		
+		override public function dispose():void
+		{
+			this.removeChildren(0, -1, true);
+			_imgTexture.dispose();
+			for each(var piece:Piece in _pieces)
+			{
+				piece.dispose();
+			}
+			super.dispose();
 		}
     }
 }

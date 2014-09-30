@@ -1,8 +1,10 @@
 package views.elements
 {
+	import starling.animation.Transitions;
+	import starling.animation.Tween;
+	import starling.core.Starling;
 	import starling.display.Image;
 	import starling.display.Sprite;
-	import starling.events.Event;
 	import starling.text.TextField;
 	import starling.textures.Texture;
 	
@@ -18,8 +20,6 @@ package views.elements
 		{
 			return _no;
 		}
-		
-		private var _onMoved:Function;
 		
 		private var _image:Image;
 		
@@ -52,14 +52,23 @@ package views.elements
 		 * 
 		 */		
 		public function moveTo(x:int, y:int, onMoved:Function):void
+		{			
+			var tween:Tween = new Tween(this, 0.5, Transitions.EASE_OUT);
+			tween.animate("x", x);
+			tween.animate("y", y);	
+			tween.onComplete = onMoved;
+			Starling.juggler.add(tween); 
+		}
+		
+		override public function dispose():void
 		{
-			this.x = x;
-			this.y = y;
-			
-			_onMoved = onMoved;
-			
-			_onMoved();
-			_onMoved = null;
+			_image.texture.dispose();
+			_image.dispose();
+			_noTxt.dispose();
+			Starling.juggler.removeTweens(this);
+			_image = null;
+			_noTxt = null;
+			super.dispose();
 		}
 	}
 }

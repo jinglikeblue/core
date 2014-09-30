@@ -6,6 +6,11 @@ package models
 	
 	import vos.PieceVO;
 
+	/**
+	 * 拼图工具的数据模型 
+	 * @author Jing
+	 * 
+	 */	
 	public class PuzzleModel
 	{
 		/**
@@ -32,7 +37,7 @@ package models
 				_pieces[i] = new PieceVO();
 				_pieces[i].no = i;
 			}
-			upset(50);
+			upset(1);
 		}
 		
 		/**
@@ -42,25 +47,78 @@ package models
 		private function upset(step:int):void
 		{
 			_map = new Vector.<PieceVO>(_pieces.length, true);
-			
-			var arr:Array = [];
-			
-			var count:int = _map.length;
-			var i:int;
-			for(i = 1; i < count; i++)
-			{
-				arr.push(i);
-			}
-			
-			//arr = ArrayUtil.randomPermutationArray(arr);
-			
+
+			var i:int;			
 			for(i = 1; i < _map.length; i++)
 			{
-				var pieceNO:int = arr.shift();
-				_map[i] = _pieces[pieceNO];
+				_map[i] = _pieces[i];
 			}
 			
+			var emptyIndex:int = 0;
+			while(--step > -1)
+			{
+				var nos:Array = getAroundNo(emptyIndex);
+				var randomNO:int = ArrayUtil.getRandomObject(nos);
+				emptyIndex = getPieceIndex(randomNO);
+				move(randomNO);				
+			}
 			trace("upseted it");
+		}
+		
+		/**
+		 * 得到指定位置周围的图片号 
+		 * @param mapIndex
+		 * @return 
+		 * 
+		 */		
+		private function getAroundNo(mapIndex:int):Array
+		{
+			var nos:Array = [];
+			
+			//第几行
+			var row:int = int(mapIndex / _size);
+			//第几列
+			var col:int = mapIndex % _size;
+			
+			var tempIndex:int;
+			//有上
+			if(row > 0)
+			{
+				tempIndex = mapIndex - _size;
+				if(_map[tempIndex] != null)
+				{
+					nos.push(_map[tempIndex].no);
+				}
+			}
+			//有下
+			if(row + 1 < _size)
+			{
+				tempIndex = mapIndex + _size;
+				if(_map[tempIndex] != null)
+				{
+					nos.push(_map[tempIndex].no);
+				}
+			}
+			//有左
+			if(col > 0)
+			{
+				tempIndex = mapIndex - 1;
+				if(_map[tempIndex] != null)
+				{
+					nos.push(_map[tempIndex].no);
+				}
+			}
+			//有右
+			if(col + 1 < _size)
+			{
+				tempIndex = mapIndex + 1;
+				if(_map[tempIndex] != null)
+				{
+					nos.push(_map[tempIndex].no);
+				}
+			}				
+			
+			return nos;
 		}
 		
 
@@ -157,6 +215,11 @@ package models
 			}
 			
 			if(null != _map[targetIndex])
+			{
+				return false;
+			}
+			
+			if(nowIndex % _size != targetIndex % _size && int(nowIndex / _size) != int(targetIndex / _size))
 			{
 				return false;
 			}
