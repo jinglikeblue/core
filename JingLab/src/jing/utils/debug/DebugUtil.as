@@ -16,6 +16,7 @@ package jing.utils.debug
      */
     public class DebugUtil
     {
+		
         static private var _inited:Boolean = false;
 
         /**

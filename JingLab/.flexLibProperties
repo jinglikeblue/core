@@ -1,37 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="3">
-  <includeClasses>
-    <classEntry path="jing.utils.img.JPGMixer"/>
-    <classEntry path="jing.structures.Tree"/>
-    <classEntry path="jing.times.FunTimeSlice"/>
-    <classEntry path="jing.game.utils.MoveUtil"/>
-    <classEntry path="jing.utils.display.Device3DTest"/>
-    <classEntry path="jing.algorithms.Sequence"/>
-    <classEntry path="jing.utils.display.Time"/>
-    <classEntry path="jing.framework.manager.loader.rv.LoaderEvent"/>
-    <classEntry path="jing.framework.manager.loader.rv.LoaderProgressEvent"/>
-    <classEntry path="jing.utils.data.UTCUtil"/>
-    <classEntry path="jing.audio.AudioDevice"/>
-    <classEntry path="jing.audio.IAudioPlayer"/>
-    <classEntry path="jing.audio.audioPlayers.AudioMP3Player"/>
-    <classEntry path="jing.audio.AudioSetting"/>
-    <classEntry path="jing.audio.AudioInfoVO"/>
-    <classEntry path="jing.workline.Workline"/>
-    <classEntry path="jing.workline.WorklineForDebug"/>
-    <classEntry path="jing.loader.ALoader"/>
-    <classEntry path="jing.loader.Example"/>
-    <classEntry path="jing.loader.events.LoaderErrorEvent"/>
-    <classEntry path="jing.loader.events.LoaderEvent"/>
-    <classEntry path="jing.loader.consts.ErrorReason"/>
-    <classEntry path="jing.loader.DisplayLoader"/>
-    <classEntry path="jing.loader.BytesLoader"/>
-    <classEntry path="jing.loader.LoaderWorker"/>
-    <classEntry path="jing.loader.LoaderFactory"/>
-    <classEntry path="jing.loader.LoaderList"/>
-    <classEntry path="jing.utils.data.RandomUtil"/>
-    <classEntry path="jing.utils.xml.XMLUtil"/>
-    <classEntry path="jing.game.move.MoveCompute"/>
-  </includeClasses>
+  <includeClasses/>
   <includeResources/>
   <namespaceManifests/>
 </flexLibProperties>

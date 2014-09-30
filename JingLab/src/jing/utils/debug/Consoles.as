@@ -2,6 +2,8 @@ package jing.utils.debug
 {
     import flash.display.DisplayObjectContainer;
     import flash.net.FileReference;
+    import flash.text.TextFormat;
+    import flash.utils.Dictionary;
 
 
     /**
@@ -12,19 +14,19 @@ package jing.utils.debug
     public class Consoles
     {
         /**
-         * 是否同步打印信息到IDE上
-         */
-        public var isPrintSyncIde:Boolean = true;
-
-        /**
          * 打印的信息内容
          */
         private var _printContent:String = "";
-
-        /**
-         * 打印的内容
-         */
-        private var _printContents:Vector.<String> = new Vector.<String>();
+		
+		/**
+		 * 打印的内容 
+		 */		
+		private var _printContents:Vector.<PrintContentVO> = new Vector.<PrintContentVO>();
+		
+		/**
+		 * 注册的指令 
+		 */		
+		private var _registeredCommand:Dictionary = new Dictionary();
 
         /**
          * 面板
@@ -58,6 +60,7 @@ package jing.utils.debug
         public function Consoles()
         {
             _panel = new ConsolePanel();
+			registCommand("clear", clear);
         }
 
         /**
@@ -68,8 +71,19 @@ package jing.utils.debug
          */
         public function bind(view:DisplayObjectContainer):void
         {
+			if(_bindView == view)
+			{
+				return;
+			}
+			
+			if(_bindView != null)
+			{
+				unbind();
+			}
+			
             _bindView = view;
-            _panel.addListeners();
+			_panel.addListeners();
+            _panel.addEventListener(ConsolePanelEvent.INPUT_COMMAND, _panel_inputCommandHandler);
         }
 
         /**
@@ -79,11 +93,29 @@ package jing.utils.debug
          */
         public function unbind():void
         {
+			if(null == _bindView)
+			{
+				return;
+			}
+			
             hide();
             _bindView = null;
             _panel.removeListeners();
+			_panel.removeEventListener(ConsolePanelEvent.INPUT_COMMAND, _panel_inputCommandHandler);
         }
-
+		
+		protected function _panel_inputCommandHandler(event:ConsolePanelEvent):void
+		{
+			var command:String = event.data;
+			var args:Array = command.split(" ");
+			var commandName:String = args.shift();
+			var commandFunction:Function = _registeredCommand[commandName];
+			if(commandFunction != null)
+			{
+				commandFunction.apply(null, args);
+			}
+		}
+		
         /**
          * 在绑定的界面上显示控制台
          *
@@ -110,18 +142,27 @@ package jing.utils.debug
 
         /**
          * 打印信息到控制台
-         * @param arg
+         * @param content 打印的内容
+		 * @param color 颜色
+		 * @param isBold 是否粗体
+		 * @param isPrintSyncIde 是否同步显示到IDE
          *
          */
-        public function print(... arg):void
+        public function print(content:String, color:uint = 0xFFFFFF, isBold:Boolean = false, isPrintSyncIde:Boolean = true):void
         {
             if (isPrintSyncIde)
             {
-                trace(arg);
+                trace(content);
             }
-
-            var content:String = "".concat(arg) + "\n";
-            _printContents.push(content);
+			
+			content += "\n";
+			
+			var tf:TextFormat = new TextFormat();
+			tf.color = color;
+			tf.bold = isBold;
+			
+			var vo:PrintContentVO = new PrintContentVO(content, tf);
+            _printContents.push(vo);
 
             if (_printContents.length > _maxContents)
             {
@@ -138,9 +179,33 @@ package jing.utils.debug
             }
             else
             {
-                _panel.addOutContent(content);
+                _panel.addOutContent(vo);
             }
         }
+		
+		/**
+		 * 注册一个控制台指令 
+		 * @param name
+		 * @param fun
+		 * 
+		 */		
+		public function registCommand(name:String, fun:Function):void
+		{
+			_registeredCommand[name] = fun;
+		}
+		
+		/**
+		 * 注销一个控制台指令 
+		 * @param name
+		 * 
+		 */		
+		public function unregisterCommand(name:String):void
+		{
+			if(_registeredCommand[name])
+			{
+				delete _registeredCommand[name];
+			}
+		}
 
         /**
          * 清除控制台信息
@@ -164,20 +229,49 @@ package jing.utils.debug
     }
 }
 
+/**
+ * 打印内容数据 
+ * @author Jing
+ * 
+ */
+class PrintContentVO
+{
+	public function PrintContentVO(content:String, tf:TextFormat):void
+	{
+		this.content = content;
+		this.tf = tf;
+	}
+	
+	/**
+	 * 文本内容 
+	 */	
+	public var content:String;
+	
+	/**
+	 * 文本格式 
+	 */	
+	public var tf:TextFormat;
+}
+
 import flash.display.Shape;
 import flash.display.Sprite;
 import flash.display.Stage;
 import flash.events.Event;
+import flash.events.KeyboardEvent;
 import flash.filters.GlowFilter;
 import flash.text.TextField;
 import flash.text.TextFieldType;
 import flash.text.TextFormat;
+import flash.ui.Keyboard;
+
+import jing.utils.data.StringUtil;
 
 /**
  * 控制台显示面板
  * @author Jing
  *
  */
+[Event(name="input command", type="ConsolePanelEvent")]
 class ConsolePanel extends Sprite
 {
     private const DEFAULT_HEIGHT:int = 500;
@@ -198,7 +292,7 @@ class ConsolePanel extends Sprite
         this.addChild(_bg);
 
         var tf:TextFormat = new TextFormat();
-        tf.color = 0x00FF00;
+        tf.color = 0xFFFFFF;
         //tf.bold = true;
         tf.size = 14;
         tf.leading = 2;
@@ -245,6 +339,7 @@ class ConsolePanel extends Sprite
     {
         addEventListener(Event.ADDED_TO_STAGE, addedToStageHandler);
         addEventListener(Event.REMOVED_FROM_STAGE, removedFromStageHandler);
+		_inText.addEventListener(KeyboardEvent.KEY_UP, _inText_keyUpHandler);
     }
 
 
@@ -252,7 +347,17 @@ class ConsolePanel extends Sprite
     {
         removeEventListener(Event.ADDED_TO_STAGE, addedToStageHandler);
         removeEventListener(Event.REMOVED_FROM_STAGE, removedFromStageHandler);
+		_inText.removeEventListener(KeyboardEvent.KEY_UP, _inText_keyUpHandler);
     }
+	
+	private function _inText_keyUpHandler(e:KeyboardEvent):void
+	{
+		if(e.keyCode == Keyboard.ENTER)
+		{
+			this.dispatchEvent(new ConsolePanelEvent(ConsolePanelEvent.INPUT_COMMAND, StringUtil.trim(_inText.text)));
+			_inText.text = "";
+		}
+	}
 
     protected function removedFromStageHandler(event:Event):void
     {
@@ -289,9 +394,10 @@ class ConsolePanel extends Sprite
     /**
      * 添加输出内容
      */
-    public function addOutContent(content:String):void
+    public function addOutContent(contentVO:PrintContentVO):void
     {
-        _outText.appendText(content);
+		_outText.defaultTextFormat = contentVO.tf;
+        _outText.appendText(contentVO.content);
         _outText.scrollV = _outText.maxScrollV;
     }
 
@@ -312,4 +418,30 @@ class ConsolePanel extends Sprite
     }
 }
 
+/**
+ * 控制台面板的事件 
+ * @author Jing
+ * 
+ */
+class ConsolePanelEvent extends Event
+{
+	static public const INPUT_COMMAND:String = "input command";
+	
+	private var _data:* = null;
 
+	/**
+	 * 数据 
+	 * @return 
+	 * 
+	 */	
+	public function get data():*
+	{
+		return _data;
+	}
+
+	public function ConsolePanelEvent(type:String, data:*):void
+	{
+		_data = data;
+		super(type);
+	}
+}
