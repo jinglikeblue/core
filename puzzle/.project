@@ -14,4 +14,11 @@
 	<natures>
 		<nature>com.adobe.flexbuilder.project.actionscriptnature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>[source path] src</name>
+			<type>2</type>
+			<location>E:/Adobe Gaming SDK 1.3/Frameworks/Starling/Starling_1_5_1/starling/src</location>
+		</link>
+	</linkedResources>
 </projectDescription>

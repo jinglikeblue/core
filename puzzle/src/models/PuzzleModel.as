@@ -1,5 +1,7 @@
 package models
 {
+	import flash.geom.Point;
+	
 	import jing.utils.data.ArrayUtil;
 	
 	import vos.PieceVO;
@@ -21,18 +23,23 @@ package models
 		 */		
 		private var _size:int;
 		
-		public function PuzzleModel(pieces:Vector.<PieceVO>)
+		public function PuzzleModel(size:int)
 		{
-			_size = Math.sqrt(pieces.length);			
-			_pieces = pieces;
-			upset();
+			_size = size;			
+			_pieces = new Vector.<PieceVO>(size * size, true);
+			for(var i:int = 0; i < _pieces.length; i++)
+			{
+				_pieces[i] = new PieceVO();
+				_pieces[i].no = i;
+			}
+			upset(50);
 		}
 		
 		/**
 		 * 将数据打乱 
-		 * 
+		 * @param step 打乱的步数，值越大越难还原
 		 */		
-		private function upset():void
+		private function upset(step:int):void
 		{
 			_map = new Vector.<PieceVO>(_pieces.length, true);
 			
@@ -45,15 +52,46 @@ package models
 				arr.push(i);
 			}
 			
-			arr = ArrayUtil.randomPermutationArray(arr);
+			//arr = ArrayUtil.randomPermutationArray(arr);
 			
 			for(i = 1; i < _map.length; i++)
 			{
-				var pieceNO:int = arr.pop();
+				var pieceNO:int = arr.shift();
 				_map[i] = _pieces[pieceNO];
 			}
 			
 			trace("upseted it");
+		}
+		
+
+		
+		public function getPiecePos(no:int):Point
+		{
+			var index:int = getPieceIndex(no);
+			if(index > -1)
+			{
+				return new Point(index % _size, int(index / _size));
+			}
+			
+			return null;
+		}
+		
+		/**
+		 * 得到碎片的索引位置 
+		 * @param no
+		 * @return 
+		 * 
+		 */		
+		private function getPieceIndex(no:int):int
+		{
+			for(var i:int = 0; i < _map.length; i++)
+			{
+				if(_map[i] && _map[i].no == no)
+				{
+					return i;
+				}
+			}			
+			return -1;
 		}
 		
 		/**
@@ -61,39 +99,47 @@ package models
 		 * @param index
 		 * 
 		 */		
-		public function move(index:int):void
+		public function move(no:int):Boolean
 		{
+			var index:int = getPieceIndex(no);
+			if(-1 == index)
+			{
+				return false;
+			}
+			
 			//检查随便是否存在
 			var pieceVO:PieceVO = _map[index];
 			
 			if(null == pieceVO)
 			{
-				return;
+				return false;
 			}
 			
 			//检查是否往上移动
 			if(true == moveTo(index, index - _size))
 			{
-				return;
+				return true;
 			}
 			
 			//检查是否往左移动
 			if(true == moveTo(index, index - 1))
 			{
-				return;
+				return true;
 			}
 			
 			//检查是否往右移动
 			if(true == moveTo(index, index + 1))
 			{
-				return;
+				return true;
 			}
 			
 			//检查是否网下移动
 			if(true == moveTo(index, index + _size))
 			{
-				return;
+				return true;
 			}
+			
+			return false;
 		}
 		
 		/**
@@ -126,7 +172,7 @@ package models
 		 * 通关检查 
 		 * 
 		 */		
-		private function checkPass():Boolean
+		public function checkPass():Boolean
 		{
 			if(_map[0] != null)
 			{
