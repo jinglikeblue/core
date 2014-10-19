@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="500" minHeight="400">
+	<fx:Script>
+		<![CDATA[
+			import net.server.Server;
+			import net.server.ServerEvent;
+			
+			private var _client:Server = new Server();
+			
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				btnDis_clickHandler(null);
+				_client.addEventListener(ServerEvent.CONNECT_SUCCESS, _client_connectedHandler);
+				_client.addEventListener(ServerEvent.CONNECT_FAIL, _client_connectedHandler);
+				_client.addEventListener(ServerEvent.CLOSED, _client_closedHandler);
+				_client.addEventListener(ServerEvent.ACCEPT_PROTOCOL, _client_protocolHandler);
+				_client.connect(_txtIP.text, int(_txtPort.text));
+				
+			}
+			
+			protected function btnSend_clickHandler(event:MouseEvent):void
+			{
+				for(var i:int = 0 ; i < 1; i++)
+				{
+					var str:String = _txtMsg.text + i;
+					var length:int = str.length;
+					
+					var ba:ByteArray = new ByteArray();					
+					ba.writeShort(length);
+					ba.writeMultiByte(str, "UTF-8");
+					_client.sendProtocol(1, ba);
+				}
+				
+			}
+			
+			protected function btnDis_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub				
+				if(_client)
+				{
+					_client.close();
+					_client.removeEventListener(ServerEvent.CONNECT_SUCCESS, _client_connectedHandler);
+					_client.removeEventListener(ServerEvent.CLOSED, _client_closedHandler);
+					_client.removeEventListener(ServerEvent.ACCEPT_PROTOCOL, _client_protocolHandler);				
+				}
+			}
+			
+			protected function _client_connectedHandler(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				_txtShow.appendText(event.type+ "\n");
+				if(event.type == ServerEvent.CONNECT_SUCCESS)
+				{
+					btnConnect.enabled = false;
+					btnDis.enabled = true;
+				}
+			}
+			
+			protected function _client_closedHandler(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				_txtShow.appendText("disconnect" + "\n");
+				btnConnect.enabled = true;
+				btnDis.enabled = false;
+			}
+			
+			protected function _client_protocolHandler(event:ServerEvent):void
+			{
+				// TODO Auto-generated method stub
+				var ba:ByteArray = event.data;
+				ba.readShort();
+				var length:int = ba.readShort();
+				var msg:String = ba.readUTFBytes(length);
+				_txtShow.appendText(msg + "\n");
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<s:VGroup width="100%" height="100%">
+		<s:HGroup>
+			<s:TextInput id="_txtIP" text="127.0.0.1" />
+			<s:TextInput id="_txtPort" toolTip="输入连接的端口" text="7654" />
+			<s:Button id="btnConnect" label="connect" click="button1_clickHandler(event)" />
+			<s:Button id="btnDis" enabled="false" label="dis" click="btnDis_clickHandler(event)" />
+		</s:HGroup>
+		
+		<s:HGroup width="100%">
+			<s:TextInput id="_txtMsg" toolTip="在这里输入要发送的内容" width="100%"  />
+			<s:Button id="btnSend" label="send" click="btnSend_clickHandler(event)" />
+		</s:HGroup>
+		
+		<s:TextArea width="100%" height="100%" id="_txtShow" />
+	</s:VGroup>
+</s:Application>
