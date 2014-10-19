@@ -1,5 +1,7 @@
 package jing.utils.txt
 {
+	import jing.utils.data.StringUtil;
+
 	/**
 	 * 配置解析器，针对TXT文件格式的配置进行解析
 	 * 配置的格式如下：
@@ -38,8 +40,12 @@ package jing.utils.txt
 				
 				for(var i:int = 2; i < rows.length; i++)
 				{
-					var rowObject:Object = {};
+					if("" == StringUtil.trim(rows[i]))
+					{
+						continue;
+					}
 					
+					var rowObject:Object = {};					
 					var columns:Array = getColumns(rows[i]);
 					for(var j:int = 0; j < columns.length; j++)
 					{
