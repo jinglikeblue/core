@@ -1,9 +1,9 @@
-package core.net.interfaces;
+package core.server.interfaces;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import core.net.Client;
+import core.server.Client;
 
 
 public interface IProtocolCacher

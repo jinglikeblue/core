@@ -1,11 +1,11 @@
 
-package core.net;
+package core.server;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
-import core.net.interfaces.IProtocolCacher;
+import core.server.interfaces.IProtocolCacher;
 
 /**
  * 连接到服务器的客户端

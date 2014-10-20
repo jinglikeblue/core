@@ -5,9 +5,9 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-import core.net.Client;
-import core.net.Server;
-import core.net.interfaces.IProtocolCacher;
+import core.server.Client;
+import core.server.Server;
+import core.server.interfaces.IProtocolCacher;
 
 
 public class Chat implements IProtocolCacher

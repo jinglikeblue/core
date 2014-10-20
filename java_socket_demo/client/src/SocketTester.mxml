@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
 			   xmlns:s="library://ns.adobe.com/flex/spark" 
-			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="500" minHeight="400" creationComplete="init()">
+			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="500" minHeight="400" creationComplete="init()" addedToStage="application1_addedToStageHandler(event)">
 	<fx:Script>
 		<![CDATA[
-			import mx.collections.ArrayCollection;
-			
 			import chat.ChatServer;
 			import chat.DataCenter;
 			import chat.notices.ChatNotice;
@@ -14,13 +12,19 @@
 			
 			import jing.framework.manager.notice.NoticeManager;
 			import jing.utils.data.StringUtil;
+			import jing.utils.debug.Consoles;
+			
+			import mx.collections.ArrayCollection;
 			
 			import net.server.ServerEvent;
 			
 			private var _server:ChatServer = new ChatServer();
 			
+			private var _console:Consoles;
+			
 			private function init():void
 			{
+				_console = new Consoles();
 				DataCenter.userList.push({id:0, name:"all"});
 				_listUser.dataProvider = new ArrayCollection(DataCenter.userList);
 				_listUser.selectedIndex = 0;
@@ -33,17 +37,20 @@
 			
 			private function userNotice(n:ChatNotice):void
 			{
+				var str:String;
 				if(n.data.online)
 				{
 					if(n.data.name == DataCenter.name)
 					{
 						//是自己登陆
 						DataCenter.id = n.data.id;
+						str = "你已进入聊天室 ID:" + DataCenter.id;
 					}
 					else
 					{
 						//增加到在线列表
 						DataCenter.userList.push(n.data);
+						str = n.data.name + " 进入聊天室 ID:" + n.data.id;
 					}
 				}
 				else
@@ -55,11 +62,13 @@
 						if(user.id == n.data.id)
 						{
 							DataCenter.userList.splice(i,1);
+							str = user.name + " 离开聊天室";
 							break;
 						}
 					}
 				}
 				
+				_txtShow.appendText(str + "\n");
 				//更新列表
 				_listUser.dataProvider = new ArrayCollection(DataCenter.userList);
 			}
@@ -170,6 +179,23 @@
 			{
 				DataCenter.name = StringUtil.format(_txtName.text);
 				_server.login(DataCenter.name);
+			}
+			
+			protected function stage_keyUpHandler(event:KeyboardEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(event.keyCode == 192)
+				{
+					_console.bind(stage);
+					_console.isShowwing?_console.hide():_console.show();
+				}
+				
+			}
+			
+			protected function application1_addedToStageHandler(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				stage.addEventListener(KeyboardEvent.KEY_UP, stage_keyUpHandler);
 			}
 			
 		]]>

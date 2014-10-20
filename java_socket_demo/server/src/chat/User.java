@@ -1,6 +1,6 @@
 package chat;
 
-import core.net.Client;
+import core.server.Client;
 
 
 public class User

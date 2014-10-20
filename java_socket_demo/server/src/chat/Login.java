@@ -2,12 +2,14 @@ package chat;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Iterator;
+import java.util.Map.Entry;
 
 import core.events.EventDispatcher;
 import core.events.IEventListener;
-import core.net.Client;
-import core.net.Server;
-import core.net.interfaces.IProtocolCacher;
+import core.server.Client;
+import core.server.Server;
+import core.server.interfaces.IProtocolCacher;
 
 
 public class Login implements IProtocolCacher,IEventListener
@@ -22,15 +24,32 @@ public class Login implements IProtocolCacher,IEventListener
 	@Override
 	public void onCacheProtocol(Client client, short protocolCode, ByteBuffer buf) throws IOException
 	{
+		DataCenter dc = DataCenter.instance();
+		
+		//将所有的玩家发送给这个用户
+		Iterator<Entry<Integer, User>> it = dc.userMap.entrySet().iterator();
+		while(it.hasNext())
+		{
+			User user = it.next().getValue();
+			byte nameByte[] = user.name.getBytes("UTF-8");
+			
+			ByteBuffer userBuff = ByteBuffer.allocate(100);
+			userBuff.putInt(user.id);
+			userBuff.put((byte)1);
+			userBuff.putShort((short)nameByte.length);
+			userBuff.put(nameByte);
+			userBuff.flip();
+			client.sendProtocol((short)1, userBuff);
+		}
+		
 		short strLen = buf.getShort();
 		byte temp[] = new byte[strLen];
 		buf.get(temp, 0, strLen);
-		String name = new String(temp, "UTF-8");
+		String name = new String(temp, "UTF-8");		
 		
-		// TODO Auto-generated method stub
-		DataCenter dc = DataCenter.instance();
+		dc.idFlag+=1;
 		//生成ID
-		int newId = dc.idFlag + 1;
+		int newId = dc.idFlag;
 		dc.userMap.put(newId, new User(newId, name, client));		
 
 
@@ -43,6 +62,7 @@ public class Login implements IProtocolCacher,IEventListener
 		buff.flip();
 		Server.instance().dispatchProtocol((short)1, buff);
 		
+
 	}
 
 	@Override
