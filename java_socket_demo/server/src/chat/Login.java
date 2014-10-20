@@ -22,19 +22,27 @@ public class Login implements IProtocolCacher,IEventListener
 	@Override
 	public void onCacheProtocol(Client client, short protocolCode, ByteBuffer buf) throws IOException
 	{
-		// TODO Auto-generated method stub
-		
 		short strLen = buf.getShort();
 		byte temp[] = new byte[strLen];
 		buf.get(temp, 0, strLen);
-		String receivedString = null;
-
-		receivedString = new String(temp, "UTF-8");
-
-		System.out.println("接收来自" + client.channel().socket().getRemoteSocketAddress() + "的信息:" + receivedString);
+		String name = new String(temp, "UTF-8");
 		
-		buf.position(4);
-		client.sendProtocol((short) 1, buf.slice());
+		// TODO Auto-generated method stub
+		DataCenter dc = DataCenter.instance();
+		//生成ID
+		int newId = dc.idFlag + 1;
+		dc.userMap.put(newId, new User(newId, name, client));		
+
+
+		//通知所有玩家有用户登陆
+		ByteBuffer buff = ByteBuffer.allocate(1024);
+		buff.putInt(newId);
+		buff.put((byte)1);
+		buff.putShort(strLen);
+		buff.put(temp);
+		buff.flip();
+		Server.instance().dispatchProtocol((short)1, buff);
+		
 	}
 
 	@Override
@@ -46,6 +54,8 @@ public class Login implements IProtocolCacher,IEventListener
 			Client client = (Client)data;
 			client.channel().socket().getLocalAddress();
 		}
+		
+		//通知所有玩家有用户离线
 	}
 
 

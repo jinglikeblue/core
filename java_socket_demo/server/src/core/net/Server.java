@@ -10,6 +10,8 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import core.events.EventDispatcher;
 import core.net.interfaces.IProtocolCacher;
@@ -59,6 +61,23 @@ public class Server extends EventDispatcher
 	//连接上的客户端
 	private HashMap<SocketChannel, Client> _onlineMap = new HashMap<SocketChannel, Client>();
 
+	/**
+	 * 广播协议
+	 * @param protocolCode 协议号
+	 * @param buff
+	 */
+	public void dispatchProtocol(short protocolCode, ByteBuffer buff)
+	{
+		Iterator<Entry<SocketChannel, Client>> iter = _onlineMap.entrySet().iterator();
+		while(iter.hasNext())
+		{
+			Map.Entry<SocketChannel, Client> entry = iter.next();
+			Client client = entry.getValue();
+			client.sendProtocol(protocolCode, buff);
+			
+		}
+	}
+	
 	private int _port;
 
 	/**
@@ -212,7 +231,10 @@ public class Server extends EventDispatcher
 		{
 			this.dispatchEvent(EVENT.CLIENT_DISCONNECT.name(), client);
 			client.dispose();
-			_onlineMap.remove(clientChannel);
+			if(null == _onlineMap.remove(clientChannel))
+			{
+				throw new IOException("wrong client disconnect");
+			}
 		}
 		else
 		{

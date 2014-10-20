@@ -18,18 +18,11 @@ public class Protocol
 		 */
 		LOGIN,
 		/**
-		 * 大厅聊天
-		 * int16 内容长度
-		 * String 内容
+		 * uint16 消息长度
+ 		 * string 消息
+	 	 * uint32 目标ID，0表示大厅聊天
 		 */
-		HALL_CHAT,
-		/**
-		 * 悄悄话
-		 * int32 目标ID
-		 * int16 内容长度
-		 * String 内容
-		 */
-		WHISPER
+		CHAT,
 	}
 	
 	/**
@@ -41,17 +34,17 @@ public class Protocol
 	{
 		NONE,
 		/**
-		 * 玩家信息
-		 * byte 是否在线 0 or 1
-		 * int16 名字长度
-		 * String 名字
+			uint32 ID
+			int8 是否在线
+			uint16 名字长度(仅在线时存在)
+			string 名字(仅在线时存在)
 		 */
 		USER,
 		/**
-		 * 收到的消息
-		 * int32 发送者ID,0表示大厅消息
-		 * int16 内容长度
-		 * String 内容
+			uint16 消息长度
+			string  消息
+			uint32 发送者ID
+			int8 是否是悄悄话
 		 */
 		MSG
 	}

@@ -18,8 +18,7 @@ public class Main
 		System.out.print("running...");
 		
 		Server.instance().registProtocolCacher((short)Protocol.PROTOCOL_C2S.LOGIN.ordinal(), new Login());
-		Server.instance().registProtocolCacher((short)Protocol.PROTOCOL_C2S.HALL_CHAT.ordinal(), new Chat());
-		Server.instance().registProtocolCacher((short)Protocol.PROTOCOL_C2S.WHISPER.ordinal(), new Chat());
+		Server.instance().registProtocolCacher((short)Protocol.PROTOCOL_C2S.CHAT.ordinal(), new Chat());
 		
 		try
 		{

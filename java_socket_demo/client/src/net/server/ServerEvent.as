@@ -43,6 +43,11 @@ package net.server
 		
 		/**
 		 * 接收到协议包 
+		 * data数据结构
+		 * {
+		 * 		id:int	//协议号
+		 * 		data:ByteBuffer //协议数据内容
+		 * }
 		 */		
 		static public const ACCEPT_PROTOCOL:String = "accpet_protocol";
 	}
