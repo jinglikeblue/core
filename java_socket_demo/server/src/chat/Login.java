@@ -1,3 +1,4 @@
+
 package chat;
 
 import java.io.IOException;
@@ -11,8 +12,7 @@ import core.server.Client;
 import core.server.Server;
 import core.server.interfaces.IProtocolCacher;
 
-
-public class Login implements IProtocolCacher,IEventListener
+public class Login implements IProtocolCacher, IEventListener
 {
 
 	public Login()
@@ -24,15 +24,21 @@ public class Login implements IProtocolCacher,IEventListener
 	@Override
 	public void onCacheProtocol(Client client, short protocolCode, ByteBuffer buf) throws IOException
 	{
+		// 验证name
+		short strLen = buf.getShort();
+		byte temp[] = new byte[strLen];
+		buf.get(temp, 0, strLen);
+		String name = new String(temp, "UTF-8");
+
 		DataCenter dc = DataCenter.instance();
-		
-		//将所有的玩家发送给这个用户
+
+		// 将所有的玩家发送给这个用户
 		Iterator<Entry<Integer, User>> it = dc.userMap.entrySet().iterator();
 		while(it.hasNext())
 		{
 			User user = it.next().getValue();
 			byte nameByte[] = user.name.getBytes("UTF-8");
-			
+
 			ByteBuffer userBuff = ByteBuffer.allocate(100);
 			userBuff.putInt(user.id);
 			userBuff.put((byte)1);
@@ -41,28 +47,20 @@ public class Login implements IProtocolCacher,IEventListener
 			userBuff.flip();
 			client.sendProtocol((short)1, userBuff);
 		}
-		
-		short strLen = buf.getShort();
-		byte temp[] = new byte[strLen];
-		buf.get(temp, 0, strLen);
-		String name = new String(temp, "UTF-8");		
-		
-		dc.idFlag+=1;
-		//生成ID
+
+		dc.idFlag += 1;
+		// 生成ID
 		int newId = dc.idFlag;
-		dc.userMap.put(newId, new User(newId, name, client));		
+		dc.userMap.put(newId, new User(newId, name, client));
 
-
-		//通知所有玩家有用户登陆
+		// 通知所有玩家有用户登陆
 		ByteBuffer buff = ByteBuffer.allocate(1024);
 		buff.putInt(newId);
 		buff.put((byte)1);
 		buff.putShort(strLen);
 		buff.put(temp);
 		buff.flip();
-		Server.instance().dispatchProtocol((short)1, buff);
-		
-
+		dc.dispatchProtocol((short)1, buff);
 	}
 
 	@Override
@@ -74,10 +72,8 @@ public class Login implements IProtocolCacher,IEventListener
 			Client client = (Client)data;
 			client.channel().socket().getLocalAddress();
 		}
-		
-		//通知所有玩家有用户离线
+
+		// 通知所有玩家有用户离线
 	}
-
-
 
 }

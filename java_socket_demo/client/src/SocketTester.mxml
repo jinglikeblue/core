@@ -4,6 +4,8 @@
 			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="500" minHeight="400" creationComplete="init()" addedToStage="application1_addedToStageHandler(event)">
 	<fx:Script>
 		<![CDATA[
+			import mx.collections.ArrayCollection;
+			
 			import chat.ChatServer;
 			import chat.DataCenter;
 			import chat.notices.ChatNotice;
@@ -13,8 +15,6 @@
 			import jing.framework.manager.notice.NoticeManager;
 			import jing.utils.data.StringUtil;
 			import jing.utils.debug.Consoles;
-			
-			import mx.collections.ArrayCollection;
 			
 			import net.server.ServerEvent;
 			
@@ -181,13 +181,16 @@
 				_server.login(DataCenter.name);
 			}
 			
+			private var _isShowwing:Boolean = false;
+			
 			protected function stage_keyUpHandler(event:KeyboardEvent):void
 			{
 				// TODO Auto-generated method stub
 				if(event.keyCode == 192)
 				{
 					_console.bind(stage);
-					_console.isShowwing?_console.hide():_console.show();
+					_isShowwing?_console.hide():_console.show();
+					_isShowwing = !_isShowwing;
 				}
 				
 			}

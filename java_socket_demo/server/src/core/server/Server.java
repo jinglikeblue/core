@@ -10,8 +10,6 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import core.events.EventDispatcher;
 import core.server.interfaces.IProtocolCacher;
@@ -40,9 +38,10 @@ public class Server extends EventDispatcher
 		}
 		return _instance;
 	}
-	
+
 	/**
 	 * 服务器事件
+	 * 
 	 * @author Jing
 	 *
 	 */
@@ -53,31 +52,13 @@ public class Server extends EventDispatcher
 		 */
 		CLIENT_DISCONNECT
 	}
-	
 
 	// 协议捕获器字典
 	private HashMap<Short, IProtocolCacher> _protocolCacherMap = new HashMap<Short, IProtocolCacher>();
 
-	//连接上的客户端
+	// 连接上的客户端
 	private HashMap<SocketChannel, Client> _onlineMap = new HashMap<SocketChannel, Client>();
 
-	/**
-	 * 广播协议
-	 * @param protocolCode 协议号
-	 * @param buff
-	 */
-	public void dispatchProtocol(short protocolCode, ByteBuffer buff)
-	{
-		Iterator<Entry<SocketChannel, Client>> iter = _onlineMap.entrySet().iterator();
-		while(iter.hasNext())
-		{
-			Map.Entry<SocketChannel, Client> entry = iter.next();
-			Client client = entry.getValue();
-			client.sendProtocol(protocolCode, buff);
-			
-		}
-	}
-	
 	private int _port;
 
 	/**
@@ -205,7 +186,7 @@ public class Server extends EventDispatcher
 
 	private void handleAccept(SelectionKey key) throws IOException
 	{
-		SocketChannel clientChannel = ((ServerSocketChannel) key.channel()).accept();
+		SocketChannel clientChannel = ((ServerSocketChannel)key.channel()).accept();
 		clientChannel.configureBlocking(false);
 		clientChannel.register(key.selector(), SelectionKey.OP_READ, ByteBuffer.allocate(_bufferSize));
 
@@ -219,11 +200,11 @@ public class Server extends EventDispatcher
 
 	private void handleRead(SelectionKey key) throws IOException
 	{
-		SocketChannel clientChannel = (SocketChannel) key.channel();
+		SocketChannel clientChannel = (SocketChannel)key.channel();
 
 		Client client = _onlineMap.get(clientChannel);
 
-		ByteBuffer buf = (ByteBuffer) key.attachment();
+		ByteBuffer buf = (ByteBuffer)key.attachment();
 
 		long bytesRead = clientChannel.read(buf);
 
@@ -238,7 +219,7 @@ public class Server extends EventDispatcher
 		}
 		else
 		{
-			buf.flip();			
+			buf.flip();
 			int limit = buf.limit();
 			// 进行协议的拆包处理
 			int used = parse(buf, client);

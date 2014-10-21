@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 
 import core.server.Client;
-import core.server.Server;
 import core.server.interfaces.IProtocolCacher;
 
 
@@ -59,7 +58,7 @@ public class Chat implements IProtocolCacher
 		{
 			newBuff.put((byte)0);
 			newBuff.flip();
-			Server.instance().dispatchProtocol((short)2, newBuff);
+			dc.dispatchProtocol((short)2, newBuff);
 		}
 	}
 
