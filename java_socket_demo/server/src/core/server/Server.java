@@ -71,16 +71,16 @@ public class Server extends EventDispatcher
 		return _port;
 	}
 
-	private int _bufferSize;
+	private int _buffSize;
 
 	/**
 	 * 缓冲区大小
 	 * 
 	 * @return
 	 */
-	public int bufferSize()
+	public int buffSize()
 	{
-		return _bufferSize;
+		return _buffSize;
 	}
 
 	private int _fps;
@@ -95,10 +95,34 @@ public class Server extends EventDispatcher
 		return _fps;
 	}
 
-	public void run(int port, int bufferSize, int fps) throws IOException
+	/**
+	 * 服务器停止标记
+	 */
+	private int _stopMark = 0;
+
+	/**
+	 * 停止服务器
+	 */
+	public void stop()
+	{
+		_stopMark = 1;
+	}
+
+	/**
+	 * 启动服务器
+	 * 
+	 * @param port
+	 *            监听的端口
+	 * @param buffSize
+	 *            缓冲区大小
+	 * @param fps
+	 *            服务器刷新的帧率
+	 * @throws IOException
+	 */
+	public void run(int port, int buffSize, int fps) throws IOException
 	{
 		_port = port;
-		_bufferSize = bufferSize;
+		_buffSize = buffSize;
 		_fps = fps;
 
 		long timeout = 1000 / fps;
@@ -112,6 +136,8 @@ public class Server extends EventDispatcher
 		listenerChannel.configureBlocking(false);
 
 		listenerChannel.register(selector, SelectionKey.OP_ACCEPT);
+
+		System.out.println("\nserver start. listening port " + port);
 
 		while(true)
 		{
@@ -127,11 +153,13 @@ public class Server extends EventDispatcher
 					{
 						if(key.isAcceptable())
 						{
+							// 接收到连接
 							handleAccept(key);
 						}
 
 						if(key.isReadable())
 						{
+							// 接收到数据
 							handleRead(key);
 						}
 
@@ -152,7 +180,17 @@ public class Server extends EventDispatcher
 
 			enterFrame();
 
+			if(1 == _stopMark)
+			{
+				System.out.println("server stopped");
+				break;
+			}
 		}
+	}
+
+	protected void enterFrame()
+	{
+		// TODO need override
 	}
 
 	/**
@@ -177,18 +215,16 @@ public class Server extends EventDispatcher
 		_protocolCacherMap.put(protocolCode, cacher);
 	}
 
-	protected void enterFrame()
-	{
-		// TODO need override
-	}
-
 	// ---------------------协议处理相关代码--------------------------------
 
 	private void handleAccept(SelectionKey key) throws IOException
 	{
+		// 获取客户端的SocketChannel
 		SocketChannel clientChannel = ((ServerSocketChannel)key.channel()).accept();
+		// 设置为非阻塞模式
 		clientChannel.configureBlocking(false);
-		clientChannel.register(key.selector(), SelectionKey.OP_READ, ByteBuffer.allocate(_bufferSize));
+		// 向给定的选择器注册此通道，返回一个选择键
+		clientChannel.register(key.selector(), SelectionKey.OP_READ, ByteBuffer.allocate(_buffSize));
 
 		Client client = new Client(clientChannel);
 		if(_onlineMap.get(clientChannel) != null)
@@ -204,12 +240,13 @@ public class Server extends EventDispatcher
 
 		Client client = _onlineMap.get(clientChannel);
 
-		ByteBuffer buf = (ByteBuffer)key.attachment();
+		ByteBuffer buff = (ByteBuffer)key.attachment();
 
-		long bytesRead = clientChannel.read(buf);
+		int bytesRead = clientChannel.read(buff);
 
 		if(bytesRead == -1)
 		{
+			//广播一个客户端断开连接的消息
 			this.dispatchEvent(EVENT.CLIENT_DISCONNECT.name(), client);
 			client.dispose();
 			if(null == _onlineMap.remove(clientChannel))
@@ -219,22 +256,22 @@ public class Server extends EventDispatcher
 		}
 		else
 		{
-			buf.flip();
-			int limit = buf.limit();
+			buff.flip();
+			int limit = buff.limit();
 			// 进行协议的拆包处理
-			int used = parse(buf, client);
+			int used = parse(buff, client);
 			int remain = limit - used;
 			if(0 == remain)
 			{
-				buf.clear();
+				buff.clear();
 			}
 			else
 			{
-				buf.position(used);
+				buff.position(used);
 				byte tempb[] = new byte[remain];
-				buf.get(tempb);
-				buf.clear();
-				buf.put(tempb);
+				buff.get(tempb);
+				buff.clear();
+				buff.put(tempb);
 			}
 		}
 	}
@@ -247,35 +284,35 @@ public class Server extends EventDispatcher
 	/**
 	 * 协议拆包
 	 * 
-	 * @param buf
+	 * @param buff
 	 * @param client
 	 * @return 返回时用到的长度
 	 */
-	private int parse(ByteBuffer buf, Client client) throws IOException
+	private int parse(ByteBuffer buff, Client client) throws IOException
 	{
 		int used = 0;
-		int limit = buf.limit();
+		int limit = buff.limit();
 		while(true)
 		{
 			// 判断是否能够读取协议的长度
-			if(buf.limit() - used < 2)
+			if(buff.limit() - used < 2)
 			{
 				break;
 			}
 
-			buf.position(used);
+			buff.position(used);
 			// 读取协议长度
-			short protocolLength = buf.getShort();
+			short protocolLength = buff.getShort();
 			// 数据内容不够一个协议的长度
-			if(buf.limit() - used < protocolLength)
+			if(buff.limit() - used < protocolLength)
 			{
 				break;
 			}
 
-			buf.position(used);
-			buf.limit(used + protocolLength);
-			ByteBuffer protocolBuf = buf.slice();
-			buf.limit(limit);
+			buff.position(used);
+			buff.limit(used + protocolLength);
+			ByteBuffer protocolBuf = buff.slice();
+			buff.limit(limit);
 			client.onAcceptProtocol(protocolBuf);
 			used += protocolLength;
 		}

@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import core.server.Client;
+
 public class DataCenter
 {
 
@@ -26,8 +28,58 @@ public class DataCenter
 	}
 	
 	public int idFlag = 0;
-	public HashMap<Integer, User> userMap = new HashMap<Integer, User>();
+	private HashMap<Client, User> _client2UserMap = new HashMap<Client, User>();
+	private HashMap<Integer, User> _id2UserMap = new HashMap<Integer, User>();
 	
+	/**
+	 * 增添一个玩家
+	 * @param user
+	 */
+	public void putUser(User user)
+	{
+		_client2UserMap.put(user.client, user);
+		_id2UserMap.put(user.id, user);
+	}
+	
+	/**
+	 * 通过ID获取玩家
+	 * @param id
+	 * @return
+	 */
+	public User getUser(Integer id)
+	{
+		return _id2UserMap.get(id);
+	}
+	
+	/**
+	 * 通过客户端连接获取玩家
+	 * @param client
+	 * @return
+	 */
+	public User getUser(Client client)
+	{
+		return _client2UserMap.get(client);
+	}
+	
+	/**
+	 * 移除玩家
+	 * @param user
+	 */
+	public void removeUser(User user)
+	{
+		_id2UserMap.remove(user.id);
+		_client2UserMap.remove(user.client);
+	}
+	
+	/**
+	 * 获取玩家列表迭代器
+	 * @return
+	 */
+	public Iterator<Entry<Integer, User>> getUserIterator()
+	{
+		return _id2UserMap.entrySet().iterator();
+	}
+			
 	/**
 	 * 广播协议
 	 * @param protocolCode 协议号
@@ -35,7 +87,7 @@ public class DataCenter
 	 */
 	public void dispatchProtocol(short protocolCode, ByteBuffer buff)
 	{
-		Iterator<Entry<Integer, User>> iter = userMap.entrySet().iterator();
+		Iterator<Entry<Client, User>> iter = _client2UserMap.entrySet().iterator();
 		while(iter.hasNext())
 		{
 			User user = iter.next().getValue();			

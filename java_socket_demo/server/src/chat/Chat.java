@@ -2,8 +2,6 @@ package chat;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Iterator;
-import java.util.Map.Entry;
 
 import core.server.Client;
 import core.server.interfaces.IProtocolCacher;
@@ -32,18 +30,9 @@ public class Chat implements IProtocolCacher
 		newBuff.put(temp);
 		
 		
-		int senderId = 0;
+		
 		DataCenter dc = DataCenter.instance();
-		Iterator<Entry<Integer, User>> it = dc.userMap.entrySet().iterator();
-		while(it.hasNext())
-		{
-			User tempUser = it.next().getValue();
-			if(tempUser.client == client)
-			{
-				senderId = tempUser.id;
-				break;
-			}
-		}
+		int senderId = dc.getUser(client).id;
 		
 		newBuff.putInt(senderId);
 		
@@ -52,7 +41,7 @@ public class Chat implements IProtocolCacher
 		{		
 			newBuff.put((byte)1);
 			newBuff.flip();
-			dc.userMap.get(targetId).client.sendProtocol((short)2, newBuff);
+			dc.getUser(targetId).client.sendProtocol((short)2, newBuff);
 		}
 		else
 		{

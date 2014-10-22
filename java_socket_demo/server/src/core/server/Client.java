@@ -2,6 +2,7 @@
 package core.server;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
@@ -35,20 +36,20 @@ public class Client
 	/**
 	 * 接收到数据
 	 * 
-	 * @param buf
+	 * @param buff
 	 *            数据内容
 	 * @return 使用了的数据长度
 	 */
-	public void onAcceptProtocol(ByteBuffer buf) throws IOException
+	public void onAcceptProtocol(ByteBuffer buff) throws IOException
 	{
-		short length = buf.getShort();
-		if(length != buf.limit())
+		short length = buff.getShort();
+		if(length != buff.limit())
 		{
 			System.out.println("protocol wrong!!!");
 			return;
 		}
 		// 获取协议号码
-		short code = buf.getShort();
+		short code = buff.getShort();
 
 		IProtocolCacher cacher = Server.instance().getProtocolCacher(code);
 		if(null == cacher)
@@ -56,7 +57,7 @@ public class Client
 			System.out.println(String.format("protocol code [%d] no cacher", code));
 			return;
 		}
-		cacher.onCacheProtocol(this, code, buf);
+		cacher.onCacheProtocol(this, code, buff);
 
 	}
 
@@ -65,16 +66,16 @@ public class Client
 	 * 
 	 * @param code
 	 *            协议编号
-	 * @param buf
+	 * @param buff
 	 *            协议的数据
 	 */
-	public void sendProtocol(short code, ByteBuffer buf)
+	public void sendProtocol(short code, ByteBuffer buff)
 	{
-		short length = (short) (buf.limit() + 4);
+		short length = (short) (buff.limit() + 4);
 		ByteBuffer protocolBuf = ByteBuffer.allocate(length);
 		protocolBuf.putShort(length);
 		protocolBuf.putShort(code);
-		protocolBuf.put(buf);
+		protocolBuf.put(buff);
 		protocolBuf.position(0);
 		try
 		{
@@ -92,6 +93,8 @@ public class Client
 	 */
 	public void dispose()
 	{
+		InetAddress address = _channel.socket().getLocalAddress();
+		
 		try
 		{
 			_channel.close();
@@ -101,7 +104,7 @@ public class Client
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		System.out.println("remove client");
+		System.out.println("client " + address.toString()  + " disposed");
 	}
 
 }

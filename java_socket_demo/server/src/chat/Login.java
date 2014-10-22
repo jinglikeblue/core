@@ -33,7 +33,7 @@ public class Login implements IProtocolCacher, IEventListener
 		DataCenter dc = DataCenter.instance();
 
 		// 将所有的玩家发送给这个用户
-		Iterator<Entry<Integer, User>> it = dc.userMap.entrySet().iterator();
+		Iterator<Entry<Integer, User>> it = dc.getUserIterator();
 		while(it.hasNext())
 		{
 			User user = it.next().getValue();
@@ -51,7 +51,7 @@ public class Login implements IProtocolCacher, IEventListener
 		dc.idFlag += 1;
 		// 生成ID
 		int newId = dc.idFlag;
-		dc.userMap.put(newId, new User(newId, name, client));
+		dc.putUser(new User(newId, name, client));
 
 		// 通知所有玩家有用户登陆
 		ByteBuffer buff = ByteBuffer.allocate(1024);
@@ -69,11 +69,24 @@ public class Login implements IProtocolCacher, IEventListener
 		// TODO Auto-generated method stub
 		if(type == Server.EVENT.CLIENT_DISCONNECT.name())
 		{
-			Client client = (Client)data;
-			client.channel().socket().getLocalAddress();
-		}
+			Client client = (Client)data;			
 
-		// 通知所有玩家有用户离线
+			DataCenter dc = DataCenter.instance();
+			User user = dc.getUser(client);
+			
+			if(null != user)
+			{			
+				// 通知所有玩家有用户离线
+				ByteBuffer buff = ByteBuffer.allocate(1024);
+				buff.putInt(user.id);
+				buff.put((byte)0);
+				buff.flip();
+				dc.dispatchProtocol((short)1, buff);
+				
+				dc.removeUser(user);;
+			}
+		}
+		
 	}
 
 }
