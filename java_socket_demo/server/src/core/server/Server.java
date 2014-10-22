@@ -15,10 +15,9 @@ import core.events.EventDispatcher;
 import core.server.interfaces.IProtocolCacher;
 
 /**
- * 服务类
+ * 服务类 单例模式
  * 
  * @author Jing
- *
  */
 public class Server extends EventDispatcher
 {
@@ -30,6 +29,11 @@ public class Server extends EventDispatcher
 
 	static private Server _instance = null;
 
+	/**
+	 * 获取单例
+	 * 
+	 * @return
+	 */
 	static public Server instance()
 	{
 		if(null == _instance)
@@ -43,10 +47,14 @@ public class Server extends EventDispatcher
 	 * 服务器事件
 	 * 
 	 * @author Jing
-	 *
 	 */
 	static public enum EVENT
 	{
+		/**
+		 * 客户端已连接
+		 */
+		CLIENT_CONNECTED,
+
 		/**
 		 * 客户端断开连接
 		 */
@@ -111,12 +119,9 @@ public class Server extends EventDispatcher
 	/**
 	 * 启动服务器
 	 * 
-	 * @param port
-	 *            监听的端口
-	 * @param buffSize
-	 *            缓冲区大小
-	 * @param fps
-	 *            服务器刷新的帧率
+	 * @param port 监听的端口
+	 * @param buffSize 缓冲区大小
+	 * @param fps 服务器刷新的帧率
 	 * @throws IOException
 	 */
 	public void run(int port, int buffSize, int fps) throws IOException
@@ -232,6 +237,8 @@ public class Server extends EventDispatcher
 			throw new IOException("can't accept same key twice");
 		}
 		_onlineMap.put(clientChannel, client);
+
+		this.dispatchEvent(EVENT.CLIENT_CONNECTED.name(), client);
 	}
 
 	private void handleRead(SelectionKey key) throws IOException
@@ -246,7 +253,7 @@ public class Server extends EventDispatcher
 
 		if(bytesRead == -1)
 		{
-			//广播一个客户端断开连接的消息
+			// 广播一个客户端断开连接的消息
 			this.dispatchEvent(EVENT.CLIENT_DISCONNECT.name(), client);
 			client.dispose();
 			if(null == _onlineMap.remove(clientChannel))
@@ -313,6 +320,7 @@ public class Server extends EventDispatcher
 			buff.limit(used + protocolLength);
 			ByteBuffer protocolBuf = buff.slice();
 			buff.limit(limit);
+			// 调用客户端的协议处理方法
 			client.onAcceptProtocol(protocolBuf);
 			used += protocolLength;
 		}

@@ -1,3 +1,4 @@
+
 package core.events;
 
 import java.util.HashMap;
@@ -6,20 +7,22 @@ import java.util.Vector;
 
 /**
  * 事件广播者
+ * 
  * @author Jing
- *
  */
 public class EventDispatcher
 {
+
 	private HashMap<String, Vector<IEventListener>> _eventMap = new HashMap<String, Vector<IEventListener>>();
-	
+
 	public EventDispatcher()
 	{
 		// TODO Auto-generated constructor stub
 	}
-	
+
 	/**
 	 * 广播事件
+	 * 
 	 * @param type
 	 * @param data
 	 */
@@ -30,17 +33,18 @@ public class EventDispatcher
 		{
 			return;
 		}
-		
+
 		Iterator<IEventListener> it = listeners.iterator();
-		
+
 		while(it.hasNext())
 		{
 			it.next().onReciveEvent(type, this, data);
 		}
 	}
-	
+
 	/**
 	 * 监听指定的事件
+	 * 
 	 * @param type
 	 * @param listener
 	 */
@@ -52,15 +56,16 @@ public class EventDispatcher
 			listeners = new Vector<IEventListener>();
 			_eventMap.put(type, listeners);
 		}
-		
+
 		if(false == listeners.contains(listeners))
 		{
 			listeners.add(listener);
 		}
 	}
-	
+
 	/**
 	 * 移除对指定事件的监听
+	 * 
 	 * @param type
 	 * @param listener
 	 */

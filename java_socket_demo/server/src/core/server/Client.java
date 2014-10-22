@@ -12,7 +12,6 @@ import core.server.interfaces.IProtocolCacher;
  * 连接到服务器的客户端
  * 
  * @author Jing
- *
  */
 public class Client
 {
@@ -30,14 +29,12 @@ public class Client
 	public Client(SocketChannel channel)
 	{
 		_channel = channel;
-		// TODO Auto-generated constructor stub
 	}
 
 	/**
 	 * 接收到数据
 	 * 
-	 * @param buff
-	 *            数据内容
+	 * @param buff 数据内容
 	 * @return 使用了的数据长度
 	 */
 	public void onAcceptProtocol(ByteBuffer buff) throws IOException
@@ -58,20 +55,17 @@ public class Client
 			return;
 		}
 		cacher.onCacheProtocol(this, code, buff);
-
 	}
 
 	/**
 	 * 向对应的客户端发送数据
 	 * 
-	 * @param code
-	 *            协议编号
-	 * @param buff
-	 *            协议的数据
+	 * @param code 协议编号
+	 * @param buff 协议的数据
 	 */
 	public void sendProtocol(short code, ByteBuffer buff)
 	{
-		short length = (short) (buff.limit() + 4);
+		short length = (short)(buff.limit() + 4);
 		ByteBuffer protocolBuf = ByteBuffer.allocate(length);
 		protocolBuf.putShort(length);
 		protocolBuf.putShort(code);
@@ -94,7 +88,7 @@ public class Client
 	public void dispose()
 	{
 		InetAddress address = _channel.socket().getLocalAddress();
-		
+
 		try
 		{
 			_channel.close();
@@ -104,7 +98,7 @@ public class Client
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		System.out.println("client " + address.toString()  + " disposed");
+		System.out.println("client " + address.toString() + " disposed");
 	}
 
 }
