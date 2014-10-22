@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import chat.cachers.User;
 import core.server.Client;
 
 public class DataCenter

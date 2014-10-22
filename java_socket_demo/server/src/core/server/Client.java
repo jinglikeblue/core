@@ -15,7 +15,9 @@ import core.server.interfaces.IProtocolCacher;
  */
 public class Client
 {
-
+	/**
+	 * 客户端的连接通道
+	 */
 	private SocketChannel _channel = null;
 
 	/**
