@@ -8,6 +8,11 @@ package jing.loader
 	import jing.loader.events.LoaderErrorEvent;
 	import jing.loader.events.LoaderEvent;
 	
+	/**
+	 * 加载类的示例 
+	 * @author Jing
+	 * 
+	 */	
 	public class Example extends Sprite
 	{
 		private var l:DisplayLoader = new DisplayLoader(null,null,4);

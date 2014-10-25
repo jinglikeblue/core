@@ -88,5 +88,26 @@ package jing.utils.data
 			format = format.replace("F",date.secondsUTC);
 			return format;
 		}
+		
+		/**
+		 * 得到UTC表达的最近一天通过了的秒数
+		 */
+		static public function getPastSeconds(utc:int, timezone:int = 0):int
+		{
+			var timeDifference:Number = timezone * ONE_HOUR_SECONDS;
+			utc += timeDifference;
+			var pastSeconds:int = utc % ONE_DAY_SECONDS;
+			return pastSeconds;			
+		}
+		
+		/**
+		 * 得到UTC表达的最近一天通过了的小时
+		 */
+		static public function getPastHours(utc:int, timezone:int = 0):int
+		{
+			var pastSeconds:int = getPastSeconds(utc, timezone);
+			var pastHours:int = (pastSeconds - pastSeconds % ONE_HOUR_SECONDS) / ONE_HOUR_SECONDS;
+			return pastHours;
+		}
 	}
 }
