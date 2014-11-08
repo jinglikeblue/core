@@ -63,6 +63,26 @@ public class MySql
 	}
 
 	/**
+	 * 关闭到数据库的连接
+	 */
+	public void close()
+	{
+		try
+		{
+			if(_conn != null && false == _conn.isClosed())
+			{
+				_conn.close();
+				_conn = null;
+			}
+		}
+		catch(SQLException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	/**
 	 * 连接数据库
 	 * 
 	 * @param address 数据库地址
@@ -99,7 +119,7 @@ public class MySql
 
 			// 加载Mysql数据驱动
 			Class.forName("com.mysql.jdbc.Driver");
-			String connectStr = String.format("jdbc:mysql://%s:%d/%s", _address, _port, _dbName);
+			String connectStr = String.format("jdbc:mysql://%s:%d/%s?useUnicode=true&characterEncoding=UTF-8", _address, _port, _dbName);
 			// 创建数据连接
 			_conn = DriverManager.getConnection(connectStr, _user, _pwd);
 
@@ -165,50 +185,161 @@ public class MySql
 
 	/**
 	 * 查询指定表的数据
+	 * 
 	 * @param table 表名
 	 * @param fields 查询的字段集, null 表示查询所有字段
 	 * @param wheres 查询的条件依次为[字段,值,字段,值.....], null 表示没有条件
 	 * @return
 	 */
-	public ResultSet queryTable(String table, String[] fields, Object[] wheres)
+//	public ResultSet query(String table, String[] fields, Object[] wheres)
+//	{
+//		String fieldSql = "*";
+//		String whereSql = "";
+//
+//		if(null != fields)
+//		{
+//			for(int i = 0; i < fields.length; i++)
+//			{
+//				if(fieldSql == "*")
+//				{
+//					fieldSql = fields[i];
+//				}
+//				else
+//				{
+//					fieldSql += "," + fields[i];
+//				}
+//			}
+//		}
+//
+//		if(null != wheres)
+//		{
+//			for(int i = 0; i < wheres.length; i += 2)
+//			{
+//				String where = wheres[i] + "='" + wheres[i + 1] + "'";
+//				if(whereSql == "")
+//				{
+//					whereSql = "WHERE " + where;
+//				}
+//				else
+//				{
+//					whereSql += " AND " + where;
+//				}
+//			}
+//		}
+//
+//		String querySql = "SELECT %s FROM %s %s";
+//		querySql = String.format(querySql, fieldSql, table, whereSql);
+//		return query(querySql);
+//	}
+
+	/**
+	 * 向指定表插入数据
+	 * 
+	 * @param table
+	 * @param values
+	 * @return
+	 */
+	public int insert(String table, Object[] values)
 	{
-		String fieldSql = "*";
-		String whereSql = "";
-
-		if(null != fields)
+		if(null == values || values.length < 1)
 		{
-			for(int i = 0; i < fields.length; i++)
+			return 0;
+		}
+
+		String valueSql = null;
+
+		for(int i = 0; i < values.length; i++)
+		{
+			if(valueSql == null)
 			{
-				if(fieldSql == "*")
-				{
-					fieldSql = fields[i];
-				}
-				else
-				{
-					fieldSql += "," + fields[i];
-				}
+				valueSql = String.format("'%s'", values[i]);
+			}
+			else
+			{
+				valueSql += String.format(",'%s'", values[i]);
 			}
 		}
 
-		if(null != wheres)
-		{
-			for(int i = 0; i < wheres.length; i += 2)
-			{
-				String where = wheres[i] + "='" + wheres[i + 1] + "'";
-				if(whereSql == "")
-				{
-					whereSql = "WHERE " + where;
-				}
-				else
-				{
-					whereSql += " AND " + where;
-				}
-			}
-		}
-
-		String querySql = "SELECT %s FROM %s %s";
-		querySql = String.format(querySql, fieldSql, table, whereSql);
-		return query(querySql);
+		String insertSql = "INSERT INTO %s VALUES(%s)";
+		insertSql = String.format(insertSql, table, valueSql);
+		return update(insertSql);
 	}
 
+	/**
+	 * 向指定表插入数据
+	 * 
+	 * @param table
+	 * @param values
+	 * @return
+	 */
+	public int insert(String table, String[] fields, Object[] values)
+	{
+		if(null == fields || fields.length < 1 || null == values || values.length < 1)
+		{
+			return 0;
+		}
+
+		String fieldSql = "";
+		String valueSql = "";
+
+		for(int i = 0; i < fields.length; i++)
+		{
+			String format = "" == fieldSql ? "%s" : ",%s";
+			fieldSql += String.format(format, fields[i]);
+		}
+
+		for(int i = 0; i < values.length; i++)
+		{
+			String format = "" == valueSql ? "'%s'" : ",'%s'";
+			valueSql += String.format(format, values[i]);
+		}
+
+		String insertSql = "INSERT INTO %s(%s) VALUES(%s)";
+		insertSql = String.format(insertSql, table, fieldSql, valueSql);
+		return update(insertSql);
+	}
+
+	/**
+	 * 修改表的数据
+	 * @param table
+	 * @param values
+	 * @param wheres 条件依次为[字段,值,字段,值.....], null 表示没有条件
+	 * @return
+	 */
+//	public int update(String table, Object[] values, Object[] wheres)
+//	{
+//		if(null == values || values.length < 0)
+//		{
+//			return 0;
+//		}
+//
+//		String valueSql = "";
+//		String whereSql = "";
+//
+//		for(int i = 0; i < values.length; i += 2)
+//		{
+//			String format = "" == valueSql ? "%s='%s'" : ",%s='%s'";
+//			valueSql += String.format(format, values[i], values[i + 1]);
+//		}
+//		
+//		if(null != wheres)
+//		{
+//			for(int i = 0; i < wheres.length; i += 2)
+//			{
+//				String where = wheres[i] + "='" + wheres[i + 1] + "'";
+//				if(whereSql == "")
+//				{
+//					whereSql = "WHERE " + where;
+//				}
+//				else
+//				{
+//					whereSql += " AND " + where;
+//				}
+//			}			
+//		}
+//
+//		String sql = "UPDATE %s SET %s %s";
+//		sql = String.format(sql, table, valueSql, whereSql);
+//		return update(sql);
+//	}
 }
