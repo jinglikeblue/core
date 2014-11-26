@@ -606,6 +606,24 @@ package jing.utils.data
 		{
 			return char.replace(/\r\n/gm, "\n");
 		}
+		
+		/**
+		 * 将input的所有from字符串替换为to字符串 
+		 * @param input
+		 * @param from
+		 * @param to
+		 * @return 
+		 * 
+		 */		
+		public static function replaceGlobal(input:String, from:String, to:String):String
+		{
+			var temp:String = input;
+			while(input != ( temp = input.replace(from,to)))
+			{
+				input = temp;
+			}
+			return input;
+		}
 
 	}
 }
