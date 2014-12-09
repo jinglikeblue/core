@@ -80,12 +80,12 @@ package jing.utils.data
 			utc += timeDifference;
 			var date:Date = new Date();
 			date.time = utc * 1000;
-			format = format.replace("A",date.fullYearUTC);
-			format = format.replace("B",date.monthUTC + 1);
-			format = format.replace("C",date.dateUTC);
-			format = format.replace("D",date.hoursUTC);
-			format = format.replace("E",date.minutesUTC);
-			format = format.replace("F",date.secondsUTC);
+			format = format.replace("A", date.fullYearUTC);
+			format = format.replace("B", date.monthUTC + 1);
+			format = format.replace("C", date.dateUTC);
+			format = format.replace("D", date.hoursUTC >= 10 ? date.hoursUTC : "0" + date.hoursUTC);
+			format = format.replace("E", date.minutesUTC >= 10 ? date.minutesUTC : "0" + date.minutesUTC);
+			format = format.replace("F", date.secondsUTC >= 10 ? date.secondsUTC : "0" + date.secondsUTC);
 			return format;
 		}
 		
@@ -108,6 +108,19 @@ package jing.utils.data
 			var pastSeconds:int = getPastSeconds(utc, timezone);
 			var pastHours:int = (pastSeconds - pastSeconds % ONE_HOUR_SECONDS) / ONE_HOUR_SECONDS;
 			return pastHours;
+		}
+		
+		/**
+		 * 得到当天00:00:00时刻的UTC
+		 * @param utc
+		 * @param timezone
+		 * @return
+		 *
+		 */
+		static public function getClosestZeroHour(utc:int, timezone:int = 0):int
+		{
+			utc -= getPastSeconds(utc, timezone);
+			return utc;
 		}
 	}
 }
