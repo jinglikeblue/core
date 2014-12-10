@@ -232,5 +232,42 @@ package jing.utils.data
 			var randomIndex:int = int(Math.random() * arr.length);
 			return arr[randomIndex];
 		}
+		
+		/**
+		 * 从数组中随机抽取指定数量的互相不重复的内容
+		 * @param arr 数组源
+		 * @param count 抽取的数量，不能大于
+		 * @param keepSource false 原始数组的数据索引位置可能被调换 || true 保持原始数组不变
+		 * @return 
+		 * 
+		 */		
+		static public function getRandomNoRepeat(arr:Array, count:uint, keepSource:Boolean = false):Array
+		{
+			if(keepSource)
+			{
+				arr = arr.concat();
+			}
+			
+			if(count > arr.length)
+			{
+				return null;
+			}
+			
+			var result:Array = [];
+			var len:int = arr.length;
+			
+			for(var i:int = 0; i < count; i++)
+			{
+				var index:int = Math.random() * len;
+				len--;
+				
+				var temp:Object = arr[index];
+				result.push(temp);
+				arr[index] = arr[len];
+				arr[len] = temp;				
+			}			
+			
+			return result;
+		}
     }
 }
