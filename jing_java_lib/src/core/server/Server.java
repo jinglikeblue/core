@@ -195,7 +195,7 @@ public class Server extends EventDispatcher
 
 	protected void enterFrame()
 	{
-		// TODO need override
+		//need override
 	}
 
 	/**
@@ -285,7 +285,7 @@ public class Server extends EventDispatcher
 
 	public void handleWrite(SelectionKey key) throws IOException
 	{
-		// TODO 这个用不上
+		//这个用不上
 	}
 
 	/**

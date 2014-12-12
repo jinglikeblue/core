@@ -35,6 +35,30 @@ public class FileUtil
 	}
 
 	/**
+	 * 默认以UTF-8编码将内容附加到指定文件末尾处
+	 * 
+	 * @param content
+	 * @param path
+	 * @throws IOException
+	 */
+	static public void appendFile(String content, String path) throws IOException
+	{
+		writeFile(content, path, "UTF-8", true);
+	}
+
+	/**
+	 * 默认以UTF-8编码写文件
+	 * 
+	 * @param content
+	 * @param path
+	 * @throws IOException
+	 */
+	static public void writeFile(String content, String path) throws IOException
+	{
+		writeFile(content, path, "UTF-8", false);
+	}
+
+	/**
 	 * 以指定编码读取文件内容
 	 * 
 	 * @param path
@@ -64,19 +88,8 @@ public class FileUtil
 		}
 
 		bufferedReader.close();
-		return stringBuffer.toString();
-	}
 
-	/**
-	 * 默认以UTF-8编码写文件
-	 * 
-	 * @param content
-	 * @param path
-	 * @throws IOException
-	 */
-	static public void writeFile(String content, String path) throws IOException
-	{
-		writeFile(content, path, "UTF-8");
+		return stringBuffer.toString();
 	}
 
 	/**
@@ -87,15 +100,14 @@ public class FileUtil
 	 * @param dirPath
 	 * @throws IOException
 	 */
-	static public void writeFile(String content, String path, String charsetName) throws IOException
+	static public void writeFile(String content, String path, String charsetName, boolean append) throws IOException
 	{
-		FileOutputStream fileOutputStream = new FileOutputStream(path);
+		FileOutputStream fileOutputStream = new FileOutputStream(path, append);
 		OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fileOutputStream, charsetName);
 		BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
 
 		bufferedWriter.write(content);
 		bufferedWriter.flush();
 		bufferedWriter.close();
-
 	}
 }
