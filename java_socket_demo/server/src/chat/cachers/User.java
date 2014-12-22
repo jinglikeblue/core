@@ -12,7 +12,6 @@ public class User
 	
 	public User(int id, String name, Client client)
 	{
-		// TODO Auto-generated constructor stub
 		this.id = id;
 		this.name = name;
 		this.client = client;

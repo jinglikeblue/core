@@ -18,7 +18,6 @@ public class Login implements IProtocolCacher, IEventListener
 
 	public Login()
 	{
-		// TODO Auto-generated constructor stub
 		Server.instance().addEventListener(Server.EVENT.CLIENT_DISCONNECT.name(), this);
 	}
 
@@ -67,7 +66,6 @@ public class Login implements IProtocolCacher, IEventListener
 	@Override
 	public void onReciveEvent(String type, EventDispatcher dispatcher, Object data)
 	{
-		// TODO Auto-generated method stub
 		if(type == Server.EVENT.CLIENT_DISCONNECT.name())
 		{
 			Client client = (Client)data;			

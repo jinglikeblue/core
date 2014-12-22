@@ -12,7 +12,7 @@ public class Chat implements IProtocolCacher
 
 	public Chat()
 	{
-		// TODO Auto-generated constructor stub
+
 	}
 
 	@Override

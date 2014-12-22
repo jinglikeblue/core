@@ -52,7 +52,6 @@ public class Protocol
 	
 	private Protocol()
 	{
-		// TODO Auto-generated constructor stub
 	}
 
 }
