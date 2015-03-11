@@ -142,7 +142,7 @@ public class Server extends EventDispatcher
 
 		listenerChannel.register(selector, SelectionKey.OP_ACCEPT);
 
-		System.out.println("\nserver start. listening port " + port);
+		Console.printInfo("server start. listening port " + port);
 
 		while(true)
 		{
@@ -187,7 +187,7 @@ public class Server extends EventDispatcher
 
 			if(1 == _stopMark)
 			{
-				System.out.println("server stopped");
+				Console.printInfo("server stopped");
 				break;
 			}
 		}
@@ -195,7 +195,7 @@ public class Server extends EventDispatcher
 
 	protected void enterFrame()
 	{
-		//need override
+		// need override
 	}
 
 	/**
@@ -285,7 +285,7 @@ public class Server extends EventDispatcher
 
 	public void handleWrite(SelectionKey key) throws IOException
 	{
-		//这个用不上
+		// 这个用不上
 	}
 
 	/**
