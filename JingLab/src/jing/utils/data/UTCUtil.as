@@ -33,8 +33,8 @@ package jing.utils.data
 		static public function getDayGap(a:int, b:int, timezone:int = 0):int
 		{		
 			var timeDifference:int = timezone * ONE_HOUR_SECONDS
-			var a:int = (a - timeDifference) / ONE_DAY_SECONDS;
-			var b:int = (b - timeDifference) / ONE_DAY_SECONDS;
+			var a:int = (a + timeDifference) / ONE_DAY_SECONDS;
+			var b:int = (b + timeDifference) / ONE_DAY_SECONDS;
 			var gap:int = a - b;
 			return gap;
 		}		

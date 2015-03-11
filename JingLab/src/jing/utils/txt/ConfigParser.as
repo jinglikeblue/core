@@ -8,6 +8,7 @@ package jing.utils.txt
 	 * 
 	 * ---------------------------------------------------
 	   关卡ID	关卡名称	资源名称	下一关卡ID
+	   ID		Name		Asset		LevelId
 		1	第一关	assets/1	
 		2	第二关	assets/2	3
 		3	第三关	assets/3	2
