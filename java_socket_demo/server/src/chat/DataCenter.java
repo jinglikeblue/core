@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.Vector;
 
 import core.net.server.Client;
 
@@ -12,7 +13,6 @@ import core.net.server.Client;
  * 数据中心
  * 
  * @author Jing
- *
  */
 public class DataCenter
 {
@@ -39,6 +39,16 @@ public class DataCenter
 
 	private HashMap<Integer, User> _id2UserMap = new HashMap<Integer, User>();
 
+	/**
+	 * 是否指定的客户端已连接
+	 * @param client
+	 * @return
+	 */
+	public boolean containsClient(Client client)
+	{
+		return _client2UserMap.containsKey(client);
+	}
+	
 	/**
 	 * 增添一个玩家
 	 * 
@@ -96,16 +106,19 @@ public class DataCenter
 	/**
 	 * 广播协议
 	 * 
-	 * @param protocolCode
-	 *            协议号
+	 * @param protocolCode 协议号
 	 * @param buff
 	 */
-	public void dispatchProtocol(short protocolCode, ByteBuffer buff)
+	public void dispatchProtocol(short protocolCode, ByteBuffer buff, Vector<User> blackList)
 	{
 		Iterator<Entry<Client, User>> iter = _client2UserMap.entrySet().iterator();
 		while(iter.hasNext())
 		{
 			User user = iter.next().getValue();
+			if(null != blackList && blackList.contains(user))
+			{
+				continue;
+			}
 			user.client.sendProtocol(protocolCode, buff);
 			buff.flip();
 		}

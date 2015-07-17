@@ -4,8 +4,9 @@ package chat
 	
 	import interfaces.IProtocolHandles;
 	
-	import net.server.ByteBuffer;
-	import net.server.Server;
+	import jing.net.Packet;
+	import jing.net.server.ByteBuffer;
+	import jing.net.server.Server;
 	
 	public class ChatServer extends Server
 	{ 
@@ -36,16 +37,16 @@ package chat
 			sendProtocol(2, buff);
 		}
 		
-		override protected function onAcceptProtocol(protocolCode:int, data:ByteBuffer):void
+		override protected function onAcceptProtocol(packet:Packet):void
 		{
-			var handle:IProtocolHandles =  _handleDic[protocolCode];
+			var handle:IProtocolHandles =  _handleDic[packet.protoId];
 			if(null != handle)
 			{
-				handle.handle(data);
+				handle.handle(packet.protoData);
 			}
 			else
 			{
-				trace("协议号 " + protocolCode + " 没有对应的处理!");
+				trace("协议号 " + packet.protoId + " 没有对应的处理!");
 			}
 		}
 		

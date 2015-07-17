@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.Vector;
 
 import chat.DataCenter;
 import chat.Protocol;
@@ -27,20 +28,29 @@ public class Login implements IProtocolCacher, IEventListener
 
 	@Override
 	public void onCacheProtocol(Client client, Packet packet) throws IOException
-	{
+	{	
+		DataCenter dc = DataCenter.instance();		
+		if(dc.containsClient(client))
+		{
+			//TODO 主动踢掉用户的处理
+			System.out.println("用户不能重复登录！");
+			client.dispose();
+			return;
+		}
 		ByteBuffer data = ByteBuffer.wrap(packet.getProtoData());
 		short nameLen = data.getShort();
 		byte[] nameBytes = new byte[nameLen];
 		data.get(nameBytes);
 		String name = new String(nameBytes, "UTF-8");
 
-		DataCenter dc = DataCenter.instance();
+		
 		dc.idFlag += 1;
 		// 生成ID
 		int newId = dc.idFlag;
-		dc.putUser(new User(newId, name, client));
+		User me = new User(newId, name, client);
+		dc.putUser(me);
 
-		// 将所有的玩家发送给这个用户
+		// 将所有的玩家发送给这个用户 
 		Iterator<Entry<Integer, User>> it = dc.getUserIterator();
 		while(it.hasNext())
 		{
@@ -63,7 +73,9 @@ public class Login implements IProtocolCacher, IEventListener
 		buff.putShort(nameLen);
 		buff.put(nameBytes);
 		buff.flip();
-		dc.dispatchProtocol(Protocol.toShort(PROTOCOL_S2C.USER), buff);
+		Vector<User> blackList = new Vector<User>();
+		blackList.add(me);
+		dc.dispatchProtocol(Protocol.toShort(PROTOCOL_S2C.USER), buff, blackList);
 	}
 
 	@Override
@@ -83,7 +95,7 @@ public class Login implements IProtocolCacher, IEventListener
 				buff.putInt(user.id);
 				buff.put((byte)0);
 				buff.flip();
-				dc.dispatchProtocol(Protocol.toShort(PROTOCOL_S2C.USER), buff);
+				dc.dispatchProtocol(Protocol.toShort(PROTOCOL_S2C.USER), buff, null);
 
 				dc.removeUser(user);
 			}

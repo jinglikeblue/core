@@ -66,7 +66,7 @@ public class Client
 		byte[] packet = Packet.pack(id, data);
 		ByteBuffer bb = ByteBuffer.wrap(packet);
 		try
-		{
+		{			
 			_channel.write(bb);
 		}
 		catch(IOException e)

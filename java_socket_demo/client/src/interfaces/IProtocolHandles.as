@@ -1,6 +1,7 @@
 package interfaces
 {
-	import net.server.ByteBuffer;
+	import jing.net.server.ByteBuffer;
+	
 
 	public interface IProtocolHandles
 	{

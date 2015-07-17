@@ -1,234 +1,272 @@
 <?xml version="1.0" encoding="utf-8"?>
-<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
-			   xmlns:s="library://ns.adobe.com/flex/spark" 
-			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="500" minHeight="400" creationComplete="init()" addedToStage="application1_addedToStageHandler(event)">
-	<fx:Script>
-		<![CDATA[
-			import mx.collections.ArrayCollection;
-			
-			import chat.ChatServer;
-			import chat.DataCenter;
-			import chat.notices.ChatNotice;
-			import chat.protocolHandles.MsgHandle;
-			import chat.protocolHandles.UserHandle;
-			
-			import jing.framework.manager.notice.NoticeManager;
-			import jing.utils.data.StringUtil;
-			import jing.utils.debug.Consoles;
-			
-			import net.server.ServerEvent;
-			
-			private var _server:ChatServer = new ChatServer();
-			
-			private var _console:Consoles;
-			
-			private function init():void
-			{
-				_console = new Consoles();
-				DataCenter.userList.push({id:0, name:"all"});
-				_listUser.dataProvider = new ArrayCollection(DataCenter.userList);
-				_listUser.selectedIndex = 0;
-				NoticeManager.addNoticeAction(ChatNotice.USER, userNotice);
-				NoticeManager.addNoticeAction(ChatNotice.MSG, msgNotice);
-				
-				_server.registProtocolHandle(1, new UserHandle());
-				_server.registProtocolHandle(2, new MsgHandle());
-			}
-			
-			private function userNotice(n:ChatNotice):void
-			{
-				var str:String;
-				if(n.data.online)
-				{
-					if(n.data.name == DataCenter.name)
-					{
-						//是自己登陆
-						DataCenter.id = n.data.id;
-						str = "你已进入聊天室 ID:" + DataCenter.id;
-					}
-					else
-					{
-						//增加到在线列表
-						DataCenter.userList.push(n.data);
-						str = n.data.name + " 进入聊天室 ID:" + n.data.id;
-					}
-				}
-				else
-				{
-					//从列表删除玩家
-					for(var i:int = 0; i < DataCenter.userList.length; i++)
-					{
-						var user:Object = DataCenter.userList[i];
-						if(user.id == n.data.id)
-						{
-							DataCenter.userList.splice(i,1);
-							str = user.name + " 离开聊天室";
-							break;
-						}
-					}
-				}
-				
-				_txtShow.appendText(str + "\n");
-				//更新列表
-				_listUser.dataProvider = new ArrayCollection(DataCenter.userList);
-			}
-			
-			private function findUser(id:int):Object
-			{
-				//从列表删除玩家
-				for(var i:int = 0; i < DataCenter.userList.length; i++)
-				{
-					var user:Object = DataCenter.userList[i];
-					if(user.id == id)
-					{
-						return user;
-					}
-				}				
-				return null;
-			}
-			
-			private function msgNotice(n:ChatNotice):void
-			{
-				var sender:Object = findUser(n.data.sender);
-				
-				var senderName:String;
-				if(n.data.sender == DataCenter.id)
-				{
-					senderName = "你";
-				}
-				else
-				{
-					senderName = sender.name;
-				}
-				
-				var msg:String = null;
-				if(n.data.isWhisper)
-				{
-					
-					msg = StringUtil.format("[{0}]悄悄对你说: {1}\n", senderName, n.data.msg);
-				}
-				else
-				{
-					msg = StringUtil.format("[{0}]说: {1}\n", senderName, n.data.msg);
-				}
-				
-				
-				_txtShow.appendText(msg);
-			}
-			
-			protected function button1_clickHandler(event:MouseEvent):void
-			{
-				btnDis_clickHandler(null);
-				_server.addEventListener(ServerEvent.CONNECT_SUCCESS, _client_connectedHandler);
-				_server.addEventListener(ServerEvent.CONNECT_FAIL, _client_connectedHandler);
-				_server.addEventListener(ServerEvent.CLOSED, _client_closedHandler);
-				
-				_server.connect(_txtIP.text, int(_txtPort.text));
-			}
-			
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               minWidth="500"
+               minHeight="400"
+               creationComplete="init()"
+               addedToStage="application1_addedToStageHandler(event)">
+	<fx:Style source="SocketTester.css"/>
+    <fx:Script>
+        <![CDATA[
+            import chat.ChatServer;
+            import chat.DataCenter;
+            import chat.notices.ChatNotice;
+            import chat.protocolHandles.MsgHandle;
+            import chat.protocolHandles.UserHandle;
 
-			
-			protected function btnSend_clickHandler(event:MouseEvent):void
-			{
-				
-				var targetId:int = 0;
-				if(_listUser.selectedIndex >= 0)
-				{
-					targetId = _listUser.selectedItem.id;
-				}
-				_server.chat(_txtMsg.text, targetId);
-				
-			}
-			
-			protected function btnDis_clickHandler(event:MouseEvent):void
-			{
-				// TODO Auto-generated method stub				
-				if(_server)
-				{
-					_server.close();
-					_server.removeEventListener(ServerEvent.CONNECT_SUCCESS, _client_connectedHandler);
-					_server.removeEventListener(ServerEvent.CONNECT_FAIL, _client_connectedHandler);
-					_server.removeEventListener(ServerEvent.CLOSED, _client_closedHandler);
-									
-				}
-				
-				btnConnect.enabled = true;
-				btnDis.enabled = false;
-			}
-			
-			protected function _client_connectedHandler(event:Event):void
-			{
-				// TODO Auto-generated method stub
-				_txtShow.appendText(event.type+ "\n");
-				if(event.type == ServerEvent.CONNECT_SUCCESS)
-				{
-					btnConnect.enabled = false;
-					btnDis.enabled = true;
-				}
-			}
-			
-			protected function _client_closedHandler(event:Event):void
-			{
-				// TODO Auto-generated method stub
-				_txtShow.appendText("disconnect" + "\n");
-				btnConnect.enabled = true;
-				btnDis.enabled = false;
-			}
-			
-			protected function _btnLogin_clickHandler(event:MouseEvent):void
-			{
-				DataCenter.name = StringUtil.format(_txtName.text);
-				_server.login(DataCenter.name);
-			}
-			
-			private var _isShowwing:Boolean = false;
-			
-			protected function stage_keyUpHandler(event:KeyboardEvent):void
-			{
-				// TODO Auto-generated method stub
-				if(event.keyCode == 192)
-				{
-					_console.bind(stage);
-					_isShowwing?_console.hide():_console.show();
-					_isShowwing = !_isShowwing;
-				}
-				
-			}
-			
-			protected function application1_addedToStageHandler(event:Event):void
-			{
-				// TODO Auto-generated method stub
-				stage.addEventListener(KeyboardEvent.KEY_UP, stage_keyUpHandler);
-			}
-			
-		]]>
-	</fx:Script>
-	
-	<fx:Declarations>
-		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
-	</fx:Declarations>
-	
-	<s:VGroup width="100%" height="100%">
-		<s:HGroup>
-			<s:TextInput id="_txtIP" text="127.0.0.1" />
-			<s:TextInput id="_txtPort" toolTip="输入连接的端口" text="9527" />
-			<s:Button id="btnConnect" label="connect" click="button1_clickHandler(event)" />
-			<s:Button id="btnDis" enabled="false" label="dis" click="btnDis_clickHandler(event)" />
-		</s:HGroup>
-		
-		<s:HGroup>
-			<s:TextInput id="_txtName" toolTip="在这里输入用户名" />
-			<s:Button id="_btnLogin" label="login" click="_btnLogin_clickHandler(event)" />
-		</s:HGroup>
-		
-		<s:HGroup width="100%">
-			<s:TextInput id="_txtMsg" toolTip="在这里输入要发送的内容" width="100%"  />
-			<s:Button id="btnSend" label="send" click="btnSend_clickHandler(event)" />
-		</s:HGroup>
-		
-		<s:HGroup height="100%" width="100%">
-			<s:List id="_listUser" height="100%" labelField="name" />
-			<s:TextArea width="100%" height="100%" id="_txtShow" editable="false" />
-		</s:HGroup>
-	</s:VGroup>
+            import jing.framework.manager.notice.NoticeManager;
+            import jing.net.server.ServerEvent;
+            import jing.utils.data.StringUtil;
+            import jing.utils.debug.Consoles;
+
+            import mx.collections.ArrayCollection;
+
+            private var _server:ChatServer = new ChatServer();
+
+            private var _console:Consoles;
+
+            private function init():void
+            {
+                _console = new Consoles();
+                DataCenter.userList.push({id: 0, name: "all"});
+                _listUser.dataProvider = new ArrayCollection(DataCenter.userList);
+                _listUser.selectedIndex = 0;
+                NoticeManager.addNoticeAction(ChatNotice.USER, userNotice);
+                NoticeManager.addNoticeAction(ChatNotice.MSG, msgNotice);
+
+                _server.registProtocolHandle(1, new UserHandle());
+                _server.registProtocolHandle(2, new MsgHandle());
+            }
+
+            private function userNotice(n:ChatNotice):void
+            {
+                var str:String;
+
+                if (n.data.online)
+                {
+                    if (n.data.name == DataCenter.name)
+                    {
+                        //是自己登陆
+                        DataCenter.id = n.data.id;
+                        str = "你已进入聊天室 ID:" + DataCenter.id;
+                    }
+                    else
+                    {
+                        //增加到在线列表
+                        DataCenter.userList.push(n.data);
+                        str = n.data.name + " 进入聊天室 ID:" + n.data.id;
+                    }
+                }
+                else
+                {
+                    //从列表删除玩家
+                    for (var i:int = 0; i < DataCenter.userList.length; i++)
+                    {
+                        var user:Object = DataCenter.userList[i];
+
+                        if (user.id == n.data.id)
+                        {
+                            DataCenter.userList.splice(i, 1);
+                            str = user.name + " 离开聊天室";
+                            break;
+                        }
+                    }
+                }
+
+                _txtShow.appendText(str + "\n");
+                //更新列表
+                _listUser.dataProvider = new ArrayCollection(DataCenter.userList);
+            }
+
+            private function findUser(id:int):Object
+            {
+                //从列表删除玩家
+                for (var i:int = 0; i < DataCenter.userList.length; i++)
+                {
+                    var user:Object = DataCenter.userList[i];
+
+                    if (user.id == id)
+                    {
+                        return user;
+                    }
+                }
+                return null;
+            }
+
+            private function msgNotice(n:ChatNotice):void
+            {
+               
+
+                var senderName:String;
+
+                if (n.data.sender == DataCenter.id)
+                {
+                    senderName = "你";
+                }
+                else
+                {
+					var sender:Object = findUser(n.data.sender);
+					if(null == sender)
+					{
+						trace("找不到的用户：" + n.data.sender);
+						return;
+					}
+                    senderName = sender.name;
+                }
+
+                var msg:String = null;
+
+                if (n.data.isWhisper)
+                {
+
+                    msg = StringUtil.format("[{0}]悄悄对你说: {1}\n", senderName, n.data.msg);
+                }
+                else
+                {
+                    msg = StringUtil.format("[{0}]说: {1}\n", senderName, n.data.msg);
+                }
+
+
+                _txtShow.appendText(msg);
+            }
+
+            protected function button1_clickHandler(event:MouseEvent):void
+            {
+                btnDis_clickHandler(null);
+                _server.addEventListener(ServerEvent.CONNECT_SUCCESS, _client_connectedHandler);
+                _server.addEventListener(ServerEvent.CONNECT_FAIL, _client_connectedHandler);
+                _server.addEventListener(ServerEvent.CLOSED, _client_closedHandler);
+
+                _server.connect(_txtIP.text, int(_txtPort.text));
+            }
+
+
+
+            protected function btnSend_clickHandler(event:MouseEvent):void
+            {
+
+                var targetId:int = 0;
+
+                if (_listUser.selectedIndex >= 0)
+                {
+                    targetId = _listUser.selectedItem.id;
+                }
+                _server.chat(_txtMsg.text, targetId);
+
+            }
+
+            protected function btnDis_clickHandler(event:MouseEvent):void
+            {
+                // TODO Auto-generated method stub				
+                if (_server)
+                {
+                    _server.close();
+                    _server.removeEventListener(ServerEvent.CONNECT_SUCCESS, _client_connectedHandler);
+                    _server.removeEventListener(ServerEvent.CONNECT_FAIL, _client_connectedHandler);
+                    _server.removeEventListener(ServerEvent.CLOSED, _client_closedHandler);
+
+                }
+
+                btnConnect.enabled = true;
+                btnDis.enabled = false;
+            }
+
+            protected function _client_connectedHandler(event:Event):void
+            {
+                // TODO Auto-generated method stub
+                _txtShow.appendText(event.type + "\n");
+
+                if (event.type == ServerEvent.CONNECT_SUCCESS)
+                {
+                    btnConnect.enabled = false;
+                    btnDis.enabled = true;
+                }
+            }
+
+            protected function _client_closedHandler(event:Event):void
+            {
+                // TODO Auto-generated method stub
+                _txtShow.appendText("disconnect" + "\n");
+                btnConnect.enabled = true;
+                btnDis.enabled = false;
+            }
+
+            protected function _btnLogin_clickHandler(event:MouseEvent):void
+            {
+                DataCenter.name = StringUtil.format(_txtName.text);
+                _server.login(DataCenter.name);
+            }
+
+            private var _isShowwing:Boolean = false;
+
+            protected function stage_keyUpHandler(event:KeyboardEvent):void
+            {
+                // TODO Auto-generated method stub
+                if (event.keyCode == 192)
+                {
+                    _console.bind(stage);
+                    _isShowwing ? _console.hide() : _console.show();
+                    _isShowwing = !_isShowwing;
+                }
+
+            }
+
+            protected function application1_addedToStageHandler(event:Event):void
+            {
+                // TODO Auto-generated method stub
+                stage.addEventListener(KeyboardEvent.KEY_UP, stage_keyUpHandler);
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- 将非可视元素（例如服务、值对象）放在此处 -->
+    </fx:Declarations>
+
+    <s:VGroup width="100%"
+              height="100%">
+        <s:HGroup>
+            <s:TextInput id="_txtIP"
+                         text="127.0.0.1"/>
+            <s:TextInput id="_txtPort"
+                         toolTip="输入连接的端口"
+                         text="9527"/>
+            <s:Button id="btnConnect"
+                      label="connect"
+                      click="button1_clickHandler(event)"/>
+            <s:Button id="btnDis"
+                      enabled="false"
+                      label="dis"
+                      click="btnDis_clickHandler(event)"/>
+        </s:HGroup>
+
+        <s:HGroup>
+            <s:TextInput id="_txtName"
+                         toolTip="在这里输入用户名"/>
+            <s:Button id="_btnLogin"
+                      label="login"
+                      click="_btnLogin_clickHandler(event)"/>
+        </s:HGroup>
+
+        <s:HGroup width="100%">
+            <s:TextInput id="_txtMsg"
+                         toolTip="在这里输入要发送的内容"
+                         width="100%"/>
+            <s:Button id="btnSend"
+                      label="send"
+                      click="btnSend_clickHandler(event)"/>
+        </s:HGroup>
+
+        <s:HGroup height="100%"
+                  width="100%">
+            <s:List id="_listUser"
+                    height="100%"
+                    labelField="name"/>
+            <s:TextArea width="100%"
+                        height="100%"
+                        id="_txtShow"
+                        editable="false"/>
+        </s:HGroup>
+    </s:VGroup>
 </s:Application>

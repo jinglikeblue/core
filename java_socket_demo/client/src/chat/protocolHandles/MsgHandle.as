@@ -5,8 +5,7 @@ package chat.protocolHandles
 	import interfaces.IProtocolHandles;
 	
 	import jing.framework.manager.notice.NoticeManager;
-	
-	import net.server.ByteBuffer;
+	import jing.net.server.ByteBuffer;
 	
 	public class MsgHandle implements IProtocolHandles
 	{

@@ -5,6 +5,8 @@ package jing.net.server
     import flash.events.IOErrorEvent;
     import flash.events.ProgressEvent;
     import flash.net.Socket;
+    
+    import jing.net.Packet;
 
     /**
      * 服务器
@@ -35,10 +37,10 @@ package jing.net.server
          */
         public function get isConnected():Boolean
         {
-			if(_socket)
-			{
-				return _socket.connected;
-			}
+            if (_socket)
+            {
+                return _socket.connected;
+            }
             return false;
         }
 
@@ -83,11 +85,11 @@ package jing.net.server
          */
         public function sendProtocol(protocolCode:int, buff:ByteBuffer):void
         {
+			var packet:Packet = new Packet();
+			packet.init(protocolCode, buff);
+			trace("发送包大小：", packet.length);
+			_socket.writeBytes(packet.toBytes());
             var length:int = buff.length + 4;
-            trace("发送包长度：", length);
-            _socket.writeShort(length);
-            _socket.writeShort(protocolCode);
-            _socket.writeBytes(buff);
             _socket.flush();
         }
 
@@ -119,7 +121,7 @@ package jing.net.server
             {
                 _buff = new ByteBuffer();
             }
-            _socket.readBytes(_buff, _buff.length, _socket.bytesAvailable);
+            _socket.readBytes(_buff, 0, _socket.bytesAvailable);
             parse();
         }
 
@@ -140,58 +142,32 @@ package jing.net.server
          *
          */
         private function parse():void
-        {
-            _buff.position = 0;
-            var used:int = 0;
-
+        {              
             //进行解包
             while (true)
             {
-                // 判断是否能够读取协议的长度
-                if (_buff.length - used < 2)
-                {
-                    break;
-                }
-
-                // 读取协议长度
-                var protocolLength:int = _buff.readUnsignedShort();
-
-                // 数据内容不够一个协议的长度
-                if (_buff.length - used < protocolLength)
-                {
-                    break;
-                }
-
-                var buff:ByteBuffer = new ByteBuffer();
-                _buff.position = used;
-                _buff.readBytes(buff, 0, protocolLength);
-                buff.position = 2;
-                var protocolCode:int = buff.readUnsignedShort();
-                onAcceptProtocol(protocolCode, buff);
-                this.dispatchEvent(new ServerEvent(ServerEvent.ACCEPT_PROTOCOL, {id: protocolCode, data: buff}));
-
-                used += protocolLength;
-            }
-
-            //保留未处理的包
-            if (used == _buff.length)
-            {
-                _buff.clear();
-            }
-            else
-            {
-                _buff.position = used;
-                var newBuff:ByteBuffer = new ByteBuffer();
-                _buff.readBytes(newBuff, 0, _buff.bytesAvailable);
-                _buff.clear();
-                _buff = newBuff;
+				_buff.position = 0;
+				var packet:Packet = Packet.unpack(_buff);
+				if(null == packet)
+				{
+					break;
+				}
+				
+				//处理这个协议
+				onAcceptProtocol(packet);
+				this.dispatchEvent(new ServerEvent(ServerEvent.ACCEPT_PROTOCOL, {packet:packet}));			
+				
+				//处理黏包
+				var buff:ByteBuffer = new ByteBuffer();
+				buff.writeBytes(_buff, packet.length, _buff.length - packet.length);
+				_buff = buff;
             }
         }
 
         /**
          * 接收到协议的处理，改方法需要重写实现
          */
-        protected function onAcceptProtocol(protocolCode:int, data:ByteBuffer):void
+        protected function onAcceptProtocol(packet:Packet):void
         {
             // TODO override
         }

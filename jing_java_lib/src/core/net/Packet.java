@@ -89,7 +89,7 @@ public class Packet
 		_length = bb.getShort();
 		_protoId = bb.getShort();
 		_sign = bb.getShort();
-		
+
 		if(_sign != createSign(_protoId, _length) || packet.length < _length)
 		{
 			// 协议有错误，应该断线
@@ -100,7 +100,12 @@ public class Packet
 		bb.get(_protoData);
 	}
 
-	public byte[] getData()
+	/**
+	 * 将协议包的数据转换为字节数组
+	 * 
+	 * @return
+	 */
+	public byte[] toBytes()
 	{
 		byte[] ba = new byte[_length];
 		ByteBuffer bb = ByteBuffer.wrap(ba);
@@ -110,6 +115,21 @@ public class Packet
 		bb.putShort(_sign);
 		bb.put(_protoData);
 		return bb.array();
+	}
+
+	/**
+	 * 将协议封包
+	 * 
+	 * @param protoId 协议号
+	 * @param protoData 协议数据
+	 * @param clientId 客户端ID，没有则填0
+	 * @return
+	 */
+	static public byte[] pack(short protoId, byte[] protoData)
+	{
+		Packet packet = new Packet(protoId, protoData);
+
+		return packet.toBytes();
 	}
 
 	/**
@@ -140,19 +160,6 @@ public class Packet
 		System.arraycopy(buffer, 0, packetData, 0, length);
 		Packet p = new Packet(packetData);
 		return p;
-	}
-
-	/**
-	 * 将协议封包
-	 * 
-	 * @param protoId 协议号
-	 * @param protoData 协议数据
-	 * @param clientId 客户端ID，没有则填0
-	 * @return
-	 */
-	static public byte[] pack(short protoId, byte[] protoData)
-	{
-		return new Packet(protoId, protoData).getProtoData();
 	}
 
 	/**

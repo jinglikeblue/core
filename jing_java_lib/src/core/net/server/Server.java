@@ -67,6 +67,16 @@ public class Server extends EventDispatcher
 
 	// 连接上的客户端
 	private HashMap<SocketChannel, Client> _onlineMap = new HashMap<SocketChannel, Client>();
+	
+	/**
+	 * 是否指定的客户端已连接
+	 * @param client
+	 * @return
+	 */
+	public boolean containsClient(Client client)
+	{
+		return _onlineMap.containsValue(client);
+	}
 
 	private int _port;
 
@@ -240,6 +250,7 @@ public class Server extends EventDispatcher
 		_onlineMap.put(clientChannel, client);
 
 		this.dispatchEvent(EVENT.CLIENT_CONNECTED.name(), client);
+		System.out.println("1 client connected");
 	}
 
 	private void handleRead(SelectionKey key) throws IOException
@@ -255,12 +266,15 @@ public class Server extends EventDispatcher
 		if(bytesRead == -1)
 		{
 			// 广播一个客户端断开连接的消息
+			
+			//TODO 这里放到client来广播事件，这样在主动dispose的时候会不会好点
 			this.dispatchEvent(EVENT.CLIENT_DISCONNECT.name(), client);
 			client.dispose();
 			if(null == _onlineMap.remove(clientChannel))
 			{
 				throw new IOException("wrong client disconnect");
 			}
+			System.out.println("1 client disconnected");
 		}
 		else
 		{			
@@ -305,7 +319,6 @@ public class Server extends EventDispatcher
 			}
 			
 			
-			//TODO 分发这个Packet
 			client.onAcceptProtocol(packet);
 			used += packet.getLength();
 			

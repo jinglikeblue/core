@@ -48,7 +48,7 @@ public class Chat implements IProtocolCacher
 		{
 			newBuff.put((byte)0);
 			newBuff.flip();
-			dc.dispatchProtocol(Protocol.toShort(PROTOCOL_S2C.MSG), newBuff);
+			dc.dispatchProtocol(Protocol.toShort(PROTOCOL_S2C.MSG), newBuff, null);
 		}
 	}
 
