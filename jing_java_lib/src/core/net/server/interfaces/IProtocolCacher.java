@@ -1,10 +1,10 @@
 
-package core.server.interfaces;
+package core.net.server.interfaces;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
-import core.server.Client;
+import core.net.Packet;
+import core.net.server.Client;
 
 /**
  * 协议捕获者
@@ -22,5 +22,5 @@ public interface IProtocolCacher
 	 * @param buff
 	 * @throws IOException
 	 */
-	void onCacheProtocol(Client client, short protocolCode, ByteBuffer buff) throws IOException;
+	void onCacheProtocol(Client client, Packet packet) throws IOException;
 }

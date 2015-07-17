@@ -49,9 +49,19 @@ public class Protocol
 		MSG
 	}
 	
+	/**
+	 * 将枚举值转换为short类型
+	 * @param e
+	 * @return
+	 */
+	public static short toShort(Enum<?> e)
+	{
+		return (short)e.ordinal();
+	}
 	
 	private Protocol()
 	{
+		
 	}
 
 }

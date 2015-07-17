@@ -1,12 +1,14 @@
 
-package core.server;
+package core.net.server;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
-import core.server.interfaces.IProtocolCacher;
+import core.net.Packet;
+import core.net.server.interfaces.IProtocolCacher;
+
 
 /**
  * 连接到服务器的客户端
@@ -39,16 +41,10 @@ public class Client
 	 * @param buff 数据内容
 	 * @return 使用了的数据长度
 	 */
-	public void onAcceptProtocol(ByteBuffer buff) throws IOException
+	public void onAcceptProtocol(Packet packet) throws IOException
 	{
-		short length = buff.getShort();
-		if(length != buff.limit())
-		{
-			System.out.println("protocol wrong!!!");
-			return;
-		}
 		// 获取协议号码
-		short code = buff.getShort();
+		short code = packet.getProtoId();
 
 		IProtocolCacher cacher = Server.instance().getProtocolCacher(code);
 		if(null == cacher)
@@ -56,31 +52,41 @@ public class Client
 			System.out.println(String.format("protocol code [%d] no cacher", code));
 			return;
 		}
-		cacher.onCacheProtocol(this, code, buff);
+		cacher.onCacheProtocol(this, packet);
 	}
 
 	/**
 	 * 向对应的客户端发送数据
 	 * 
-	 * @param code 协议编号
-	 * @param buff 协议的数据
+	 * @param id 协议编号
+	 * @param data 协议的数据
 	 */
-	public void sendProtocol(short code, ByteBuffer buff)
+	public void sendProtocol(short id, byte[] data)
 	{
-		short length = (short)(buff.limit() + 4);
-		ByteBuffer protocolBuf = ByteBuffer.allocate(length);
-		protocolBuf.putShort(length);
-		protocolBuf.putShort(code);
-		protocolBuf.put(buff);
-		protocolBuf.position(0);
+		byte[] packet = Packet.pack(id, data);
+		ByteBuffer bb = ByteBuffer.wrap(packet);
 		try
 		{
-			_channel.write(protocolBuf);
+			_channel.write(bb);
 		}
 		catch(IOException e)
 		{
 			e.printStackTrace();
 		}
+	}
+	
+	/**
+	 * 向对应的客户端发送数据
+	 * 
+	 * @param id 协议编号
+	 * @param data 协议的数据
+	 */
+	public void sendProtocol(short id, ByteBuffer data)
+	{
+		byte[] ba = new byte[data.limit()];
+		data.position(0);
+		data.get(ba);
+		sendProtocol(id, ba);
 	}
 
 	/**

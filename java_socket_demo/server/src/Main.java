@@ -1,10 +1,10 @@
 import java.io.IOException;
 
-import chat.Chat;
 import chat.Protocol;
+import chat.cachers.Chat;
 import chat.cachers.Login;
-import core.server.Console;
-import core.server.Server;
+import core.net.server.Console;
+import core.net.server.Server;
 
 public class Main
 {	

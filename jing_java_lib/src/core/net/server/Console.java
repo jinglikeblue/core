@@ -1,6 +1,6 @@
-package core.server;
+package core.net.server;
 
-import core.server.utils.Log;
+import core.net.server.utils.Log;
 
 
 

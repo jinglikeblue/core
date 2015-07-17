@@ -1,6 +1,6 @@
-package chat.cachers;
+package chat;
 
-import core.server.Client;
+import core.net.server.Client;
 
 
 public class User

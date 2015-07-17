@@ -1,5 +1,5 @@
 
-package core.server.utils;
+package core.net.server.utils;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,7 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import core.io.FileUtil;
-import core.server.Console;
+import core.net.server.Console;
 
 /**
  * 日志工具

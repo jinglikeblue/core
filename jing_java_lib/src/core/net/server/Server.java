@@ -1,5 +1,5 @@
 
-package core.server;
+package core.net.server;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -12,7 +12,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import core.events.EventDispatcher;
-import core.server.interfaces.IProtocolCacher;
+import core.net.Packet;
+import core.net.server.interfaces.IProtocolCacher;
 
 /**
  * 服务类 单例模式
@@ -142,7 +143,7 @@ public class Server extends EventDispatcher
 
 		listenerChannel.register(selector, SelectionKey.OP_ACCEPT);
 
-		System.out.println("\nserver start. listening port " + port);
+		Console.printInfo("server start. listening port " + port);
 
 		while(true)
 		{
@@ -187,7 +188,7 @@ public class Server extends EventDispatcher
 
 			if(1 == _stopMark)
 			{
-				System.out.println("server stopped");
+				Console.printInfo("server stopped");
 				break;
 			}
 		}
@@ -195,7 +196,7 @@ public class Server extends EventDispatcher
 
 	protected void enterFrame()
 	{
-		// TODO need override
+		// need override
 	}
 
 	/**
@@ -262,32 +263,28 @@ public class Server extends EventDispatcher
 			}
 		}
 		else
-		{
+		{			
 			buff.flip();
 			int limit = buff.limit();
+			byte[] ba = new byte[limit];
+			buff.get(ba);			
+			
 			// 进行协议的拆包处理
-			int used = parse(buff, client);
+			int used = parse(ba, client);
 			int remain = limit - used;
-			if(0 == remain)
+			buff.clear();
+			if(remain > 0)
 			{
-				buff.clear();
-			}
-			else
-			{
-				buff.position(used);
-				byte tempb[] = new byte[remain];
-				buff.get(tempb);
-				buff.clear();
-				buff.put(tempb);
+				buff.put(ba, used, remain);
 			}
 		}
 	}
 
 	public void handleWrite(SelectionKey key) throws IOException
 	{
-		// TODO 这个用不上
+		// 这个用不上
 	}
-
+	
 	/**
 	 * 协议拆包
 	 * 
@@ -295,34 +292,32 @@ public class Server extends EventDispatcher
 	 * @param client
 	 * @return 返回时用到的长度
 	 */
-	private int parse(ByteBuffer buff, Client client) throws IOException
+	private int parse(byte[] ba, Client client) throws IOException
 	{
 		int used = 0;
-		int limit = buff.limit();
+		
 		while(true)
-		{
-			// 判断是否能够读取协议的长度
-			if(buff.limit() - used < 2)
+		{			
+			Packet packet = Packet.unpack(ba);
+			if(null == packet)
 			{
 				break;
 			}
-
-			buff.position(used);
-			// 读取协议长度
-			short protocolLength = buff.getShort();
-			// 数据内容不够一个协议的长度
-			if(buff.limit() - used < protocolLength)
+			
+			
+			//TODO 分发这个Packet
+			client.onAcceptProtocol(packet);
+			used += packet.getLength();
+			
+			if(packet.getLength() == ba.length)
 			{
 				break;
 			}
-
-			buff.position(used);
-			buff.limit(used + protocolLength);
-			ByteBuffer protocolBuf = buff.slice();
-			buff.limit(limit);
-			// 调用客户端的协议处理方法
-			client.onAcceptProtocol(protocolBuf);
-			used += protocolLength;
+			
+			//处理粘包
+			byte[] remainBytes = new byte[ba.length - packet.getLength()];
+			System.arraycopy(ba, packet.getLength(), remainBytes, 0, remainBytes.length);
+			ba = remainBytes;			
 		}
 
 		return used;
