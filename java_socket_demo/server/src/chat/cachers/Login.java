@@ -28,11 +28,10 @@ public class Login implements IProtocolCacher, IEventListener
 
 	@Override
 	public void onCacheProtocol(Client client, Packet packet) throws IOException
-	{	
-		DataCenter dc = DataCenter.instance();		
+	{
+		DataCenter dc = DataCenter.instance();
 		if(dc.containsClient(client))
 		{
-			//TODO 主动踢掉用户的处理
 			System.out.println("用户不能重复登录！");
 			client.dispose();
 			return;
@@ -43,14 +42,13 @@ public class Login implements IProtocolCacher, IEventListener
 		data.get(nameBytes);
 		String name = new String(nameBytes, "UTF-8");
 
-		
 		dc.idFlag += 1;
 		// 生成ID
 		int newId = dc.idFlag;
 		User me = new User(newId, name, client);
 		dc.putUser(me);
 
-		// 将所有的玩家发送给这个用户 
+		// 将所有的玩家发送给这个用户
 		Iterator<Entry<Integer, User>> it = dc.getUserIterator();
 		while(it.hasNext())
 		{
@@ -90,6 +88,7 @@ public class Login implements IProtocolCacher, IEventListener
 
 			if(null != user)
 			{
+				dc.removeUser(user);
 				// 通知所有玩家有用户离线
 				ByteBuffer buff = ByteBuffer.allocate(1024);
 				buff.putInt(user.id);
@@ -97,7 +96,6 @@ public class Login implements IProtocolCacher, IEventListener
 				buff.flip();
 				dc.dispatchProtocol(Protocol.toShort(PROTOCOL_S2C.USER), buff, null);
 
-				dc.removeUser(user);
 			}
 		}
 
