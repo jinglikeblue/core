@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 import core.net.Packet;
+import core.net.server.Server.EVENT;
 import core.net.server.interfaces.IProtocolCacher;
 
 
@@ -63,6 +64,11 @@ public class Client
 	 */
 	public void sendProtocol(short id, byte[] data)
 	{
+		if(false == _channel.isOpen())
+		{
+			return;
+		}
+		
 		byte[] packet = Packet.pack(id, data);
 		ByteBuffer bb = ByteBuffer.wrap(packet);
 		try
@@ -71,7 +77,7 @@ public class Client
 		}
 		catch(IOException e)
 		{
-			e.printStackTrace();
+			Console.log.error(e);
 		}
 	}
 	
@@ -101,10 +107,13 @@ public class Client
 			_channel.close();
 		}
 		catch(IOException e)
-		{
-			e.printStackTrace();
+		{			
+			Console.log.error("dispose client error [" + address + "]", e);
 		}
-		System.out.println("client " + address.toString() + " disposed");
+		
+		// 广播一个客户端断开连接的消息	
+		Server.instance().dispatchEvent(EVENT.CLIENT_DISCONNECT.name(), this);
+		Console.log.log("client " + address.toString() + " disposed");
 	}
 
 }

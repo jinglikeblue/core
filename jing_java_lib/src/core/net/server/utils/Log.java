@@ -1,8 +1,10 @@
 
 package core.net.server.utils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -111,6 +113,28 @@ public class Log
 	{
 		writeLog(content, _errorLogPath);
 		Console.printError(content);
+	}
+	
+	/**
+	 * 记录报错信息
+	 * @param error
+	 */
+	public void error(Throwable error)
+	{
+		ByteArrayOutputStream bOS = new ByteArrayOutputStream();
+		error.printStackTrace(new PrintStream(bOS));
+		error(bOS.toString());
+	}
+	
+	/**
+	 * 记录报错信息
+	 * @param error
+	 */
+	public void error(String content, Throwable error)
+	{
+		ByteArrayOutputStream bOS = new ByteArrayOutputStream();
+		error.printStackTrace(new PrintStream(bOS));
+		error(content + "\r\n" + bOS.toString());
 	}
 	
 	/**

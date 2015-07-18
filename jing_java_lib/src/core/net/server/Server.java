@@ -1,6 +1,7 @@
 
 package core.net.server;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -67,9 +68,10 @@ public class Server extends EventDispatcher
 
 	// 连接上的客户端
 	private HashMap<SocketChannel, Client> _onlineMap = new HashMap<SocketChannel, Client>();
-	
+
 	/**
 	 * 是否指定的客户端已连接
+	 * 
 	 * @param client
 	 * @return
 	 */
@@ -127,16 +129,58 @@ public class Server extends EventDispatcher
 		_stopMark = 1;
 	}
 
+	static public void initStop()
+	{
+		new Thread()
+		{
+			public void run()
+			{
+				File shutdownFile = new File("del2stop.server");
+				if(false == shutdownFile.exists())
+				{
+					try
+					{
+						shutdownFile.createNewFile();
+					}
+					catch(IOException e)
+					{
+						Console.log.error(e);
+					}
+				}
+
+				while(true)
+				{
+					try
+					{
+						if(shutdownFile.exists())
+						{							
+							Thread.sleep(1000);
+						}
+						else
+						{
+							Server.instance().stop();
+						}
+					}
+					catch(InterruptedException e)
+					{
+						Console.log.error(e);
+					}
+				}
+			}
+		}.start();
+	}
+
 	/**
 	 * 启动服务器
 	 * 
 	 * @param port 监听的端口
 	 * @param buffSize 缓冲区大小
-	 * @param fps 服务器刷新的帧率
+	 * @param fps 服务器刷新的帧率(帧/秒)
 	 * @throws IOException
 	 */
 	public void run(int port, int buffSize, int fps) throws IOException
 	{
+		Server.initStop();
 		_port = port;
 		_buffSize = buffSize;
 		_fps = fps;
@@ -153,7 +197,7 @@ public class Server extends EventDispatcher
 
 		listenerChannel.register(selector, SelectionKey.OP_ACCEPT);
 
-		Console.printInfo("server start. listening port " + port);
+		Console.log.log("server start. listening port " + port);
 
 		while(true)
 		{
@@ -184,9 +228,10 @@ public class Server extends EventDispatcher
 							handleWrite(key);
 						}
 					}
-					catch(IOException ex)
+					catch(IOException e)
 					{
 						keyIter.remove();
+						Console.log.error(e);
 						continue;
 					}
 
@@ -198,7 +243,8 @@ public class Server extends EventDispatcher
 
 			if(1 == _stopMark)
 			{
-				Console.printInfo("server stopped");
+				Console.log.log("server stopped");
+				System.exit(0);
 				break;
 			}
 		}
@@ -250,7 +296,7 @@ public class Server extends EventDispatcher
 		_onlineMap.put(clientChannel, client);
 
 		this.dispatchEvent(EVENT.CLIENT_CONNECTED.name(), client);
-		System.out.println("1 client connected");
+		Console.printInfo("one client connected");
 	}
 
 	private void handleRead(SelectionKey key) throws IOException
@@ -265,24 +311,20 @@ public class Server extends EventDispatcher
 
 		if(bytesRead == -1)
 		{
-			// 广播一个客户端断开连接的消息
-			
-			//TODO 这里放到client来广播事件，这样在主动dispose的时候会不会好点
-			this.dispatchEvent(EVENT.CLIENT_DISCONNECT.name(), client);
 			client.dispose();
 			if(null == _onlineMap.remove(clientChannel))
 			{
 				throw new IOException("wrong client disconnect");
 			}
-			System.out.println("1 client disconnected");
+			Console.printInfo("one client disconnected");
 		}
 		else
-		{			
+		{
 			buff.flip();
 			int limit = buff.limit();
 			byte[] ba = new byte[limit];
-			buff.get(ba);			
-			
+			buff.get(ba);
+
 			// 进行协议的拆包处理
 			int used = parse(ba, client);
 			int remain = limit - used;
@@ -298,7 +340,7 @@ public class Server extends EventDispatcher
 	{
 		// 这个用不上
 	}
-	
+
 	/**
 	 * 协议拆包
 	 * 
@@ -309,28 +351,27 @@ public class Server extends EventDispatcher
 	private int parse(byte[] ba, Client client) throws IOException
 	{
 		int used = 0;
-		
+
 		while(true)
-		{			
+		{
 			Packet packet = Packet.unpack(ba);
 			if(null == packet)
 			{
 				break;
 			}
-			
-			
+
 			client.onAcceptProtocol(packet);
 			used += packet.getLength();
-			
+
 			if(packet.getLength() == ba.length)
 			{
 				break;
 			}
-			
-			//处理粘包
+
+			// 处理粘包
 			byte[] remainBytes = new byte[ba.length - packet.getLength()];
 			System.arraycopy(ba, packet.getLength(), remainBytes, 0, remainBytes.length);
-			ba = remainBytes;			
+			ba = remainBytes;
 		}
 
 		return used;
