@@ -5,7 +5,8 @@ package jing.net.server
     import flash.events.IOErrorEvent;
     import flash.events.ProgressEvent;
     import flash.net.Socket;
-    
+    import flash.utils.Dictionary;
+
     import jing.net.Packet;
 
     /**
@@ -28,8 +29,21 @@ package jing.net.server
 
         private var _port:int;
 
+        private var _protoHandles:Dictionary = new Dictionary();
+
         public function Server()
         {
+        }
+
+        /**
+         * 注册协议处理器
+         * @param protocolId 协议ID
+         * @param handler 处理器
+         *
+         */
+        public function registProtocolHandle(protocolId:int, handler:IProtocolHandles):void
+        {
+            _protoHandles[protocolId] = handler;
         }
 
         /**
@@ -85,10 +99,15 @@ package jing.net.server
          */
         public function sendProtocol(protocolCode:int, buff:ByteBuffer):void
         {
-			var packet:Packet = new Packet();
-			packet.init(protocolCode, buff);
-			trace("发送包大小：", packet.length);
-			_socket.writeBytes(packet.toBytes());
+            if (false == isConnected)
+            {
+                return;
+            }
+
+            var packet:Packet = new Packet();
+            packet.init(protocolCode, buff);
+            trace("发送包大小：", packet.length);
+            _socket.writeBytes(packet.toBytes());
             var length:int = buff.length + 4;
             _socket.flush();
         }
@@ -142,25 +161,26 @@ package jing.net.server
          *
          */
         private function parse():void
-        {              
+        {
             //进行解包
             while (true)
             {
-				_buff.position = 0;
-				var packet:Packet = Packet.unpack(_buff);
-				if(null == packet)
-				{
-					break;
-				}
-				
-				//处理这个协议
-				onAcceptProtocol(packet);
-				this.dispatchEvent(new ServerEvent(ServerEvent.ACCEPT_PROTOCOL, {packet:packet}));			
-				
-				//处理黏包
-				var buff:ByteBuffer = new ByteBuffer();
-				buff.writeBytes(_buff, packet.length, _buff.length - packet.length);
-				_buff = buff;
+                _buff.position = 0;
+                var packet:Packet = Packet.unpack(_buff);
+
+                if (null == packet)
+                {
+                    break;
+                }
+
+                //处理这个协议
+                onAcceptProtocol(packet);
+                this.dispatchEvent(new ServerEvent(ServerEvent.ACCEPT_PROTOCOL, {packet: packet}));
+
+                //处理黏包
+                var buff:ByteBuffer = new ByteBuffer();
+                buff.writeBytes(_buff, packet.length, _buff.length - packet.length);
+                _buff = buff;
             }
         }
 
@@ -169,7 +189,16 @@ package jing.net.server
          */
         protected function onAcceptProtocol(packet:Packet):void
         {
-            // TODO override
+            var handle:IProtocolHandles = _protoHandles[packet.protoId];
+
+            if (null != handle)
+            {
+                handle.handle(packet);
+            }
+            else
+            {
+                trace("协议:[" + packet.protoId + "]没有对应的处理!");
+            }
         }
 
     }
