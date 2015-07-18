@@ -2,9 +2,6 @@ package chat
 {
 	import flash.utils.Dictionary;
 	
-	import interfaces.IProtocolHandles;
-	
-	import jing.net.Packet;
 	import jing.net.server.ByteBuffer;
 	import jing.net.server.Server;
 	
@@ -15,11 +12,6 @@ package chat
 		public function ChatServer()
 		{
 			super();
-		}
-		
-		public function registProtocolHandle(protocolCode:int, handle:IProtocolHandles):void
-		{
-			_handleDic[protocolCode] = handle;
 		}
 		
 		public function login(name:String):void
@@ -35,28 +27,6 @@ package chat
 			buff.writeString(msg);
 			buff.writeUnsignedInt(targetId);
 			sendProtocol(2, buff);
-		}
-		
-		override protected function onAcceptProtocol(packet:Packet):void
-		{
-			var handle:IProtocolHandles =  _handleDic[packet.protoId];
-			if(null != handle)
-			{
-				handle.handle(packet.protoData);
-			}
-			else
-			{
-				trace("协议号 " + packet.protoId + " 没有对应的处理!");
-			}
-		}
-		
-		override public function sendProtocol(protocolCode:int, ba:ByteBuffer):void
-		{
-			if(false == isConnected)
-			{
-				return;
-			}
-			super.sendProtocol(protocolCode, ba);
 		}
 	}
 }

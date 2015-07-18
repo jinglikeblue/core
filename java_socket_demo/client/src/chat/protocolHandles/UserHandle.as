@@ -1,30 +1,32 @@
 package chat.protocolHandles
 {
-	import chat.notices.ChatNotice;
-	
-	import interfaces.IProtocolHandles;
-	
-	import jing.framework.manager.notice.NoticeManager;
-	import jing.net.server.ByteBuffer;
-	
-	public class UserHandle implements IProtocolHandles
-	{
-		public function UserHandle()
-		{
-		}
-		
-		public function handle(buff:ByteBuffer):void
-		{
-			var obj:Object = {};
-			obj.id = buff.readUnsignedInt();
-			obj.online = buff.readUnsignedByte();
-			if(obj.online)
-			{
-				obj.name = buff.readString();
-				
-			}
-			
-			NoticeManager.sendNotice(new ChatNotice(ChatNotice.USER, obj));
-		}
-	}
+    import chat.notices.ChatNotice;
+
+    import jing.framework.manager.notice.NoticeManager;
+    import jing.net.Packet;
+    import jing.net.server.ByteBuffer;
+    import jing.net.server.IProtocolHandles;
+
+    public class UserHandle implements IProtocolHandles
+    {
+        public function UserHandle()
+        {
+        }
+
+        public function handle(packet:Packet):void
+        {
+            var obj:Object = {};
+            var buff:ByteBuffer = packet.protoData;
+            obj.id = buff.readUnsignedInt();
+            obj.online = buff.readUnsignedByte();
+
+            if (obj.online)
+            {
+                obj.name = buff.readString();
+
+            }
+
+            NoticeManager.sendNotice(new ChatNotice(ChatNotice.USER, obj));
+        }
+    }
 }
