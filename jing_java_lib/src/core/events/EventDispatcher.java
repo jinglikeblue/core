@@ -56,7 +56,7 @@ public class EventDispatcher
 			_eventMap.put(type, listeners);
 		}
 
-		if(false == listeners.contains(listeners))
+		if(false == listeners.contains(listener))
 		{
 			listeners.add(listener);
 		}

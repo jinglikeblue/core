@@ -229,7 +229,7 @@ public class Server extends EventDispatcher
 						}
 					}
 					catch(IOException e)
-					{
+					{												
 						keyIter.remove();
 						Console.log.error(e);
 						continue;
@@ -327,11 +327,19 @@ public class Server extends EventDispatcher
 
 			// 进行协议的拆包处理
 			int used = parse(ba, client);
-			int remain = limit - used;
-			buff.clear();
-			if(remain > 0)
+			if(used > 0)
 			{
-				buff.put(ba, used, remain);
+				int remain = limit - used;
+				buff.clear();
+				if(remain > 0)
+				{
+					buff.put(ba, used, remain);
+				}
+				buff.position(remain);
+			}
+			else
+			{
+				buff.limit(_buffSize);
 			}
 		}
 	}
@@ -354,7 +362,7 @@ public class Server extends EventDispatcher
 
 		while(true)
 		{
-			Packet packet = Packet.unpack(ba);
+			Packet packet = Packet.unpack(ba, used);
 			if(null == packet)
 			{
 				break;
@@ -369,9 +377,9 @@ public class Server extends EventDispatcher
 			}
 
 			// 处理粘包
-			byte[] remainBytes = new byte[ba.length - packet.getLength()];
-			System.arraycopy(ba, packet.getLength(), remainBytes, 0, remainBytes.length);
-			ba = remainBytes;
+//			byte[] remainBytes = new byte[ba.length - packet.getLength()];
+//			System.arraycopy(ba, packet.getLength(), remainBytes, 0, remainBytes.length);
+//			ba = remainBytes;
 		}
 
 		return used;

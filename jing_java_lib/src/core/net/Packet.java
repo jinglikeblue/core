@@ -86,18 +86,28 @@ public class Packet
 	public Packet(byte[] packet)
 	{
 		ByteBuffer bb = ByteBuffer.wrap(packet);
-		_length = bb.getShort();
-		_protoId = bb.getShort();
-		_sign = bb.getShort();
+		fromBytes(bb);
+	}
 
-		if(_sign != createSign(_protoId, _length) || packet.length < _length)
+	public Packet(ByteBuffer packet)
+	{
+		fromBytes(packet);
+	}
+
+	public void fromBytes(ByteBuffer packet)
+	{
+		_length = packet.getShort();
+		_protoId = packet.getShort();
+		_sign = packet.getShort();
+
+		if(_sign != createSign(_protoId, _length))
 		{
 			// 协议有错误，应该断线
 			System.out.println("A packet have a wrong! protoId: " + _protoId);
 		}
 		int dataLength = _length - HEAD_SIZE;
 		_protoData = new byte[dataLength];
-		bb.get(_protoData);
+		packet.get(_protoData);
 	}
 
 	/**
@@ -138,27 +148,26 @@ public class Packet
 	 * @param packet
 	 * @return
 	 */
-	static public Packet unpack(byte[] buffer)
+	static public Packet unpack(byte[] buffer, int offset)
 	{
+		ByteBuffer buff = ByteBuffer.wrap(buffer);
+		buff.position(offset);
+
 		// 检查协议头是否满足
-		if(buffer.length < HEAD_SIZE)
+		if(buff.remaining() < HEAD_SIZE)
 		{
 			return null;
 		}
 
 		// 检查协议长度是否满足
-		ByteBuffer bb = ByteBuffer.wrap(buffer);
-		short length = bb.getShort();
-
-		if(buffer.length < length)
+		short length = buff.getShort();
+		buff.position(buff.position() - 2);
+		if(buff.remaining() < length)
 		{
 			return null;
 		}
 
-		// 抽取协议返回
-		byte[] packetData = new byte[length];
-		System.arraycopy(buffer, 0, packetData, 0, length);
-		Packet p = new Packet(packetData);
+		Packet p = new Packet(buff);
 		return p;
 	}
 
