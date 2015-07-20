@@ -9,18 +9,21 @@
 	<fx:Style source="SocketTester.css"/>
     <fx:Script>
         <![CDATA[
-            import chat.ChatServer;
-            import chat.DataCenter;
-            import chat.notices.ChatNotice;
-            import chat.protocolHandles.MsgHandle;
-            import chat.protocolHandles.UserHandle;
-
-            import jing.framework.manager.notice.NoticeManager;
-            import jing.net.server.ServerEvent;
-            import jing.utils.data.StringUtil;
-            import jing.utils.debug.Consoles;
-
-            import mx.collections.ArrayCollection;
+			import chat.ChatServer;
+			import chat.DataCenter;
+			import chat.notices.ChatNotice;
+			import chat.protocolHandles.MsgHandle;
+			import chat.protocolHandles.UserHandle;
+			
+			import flash.utils.setTimeout;
+			
+			import jing.framework.manager.notice.NoticeManager;
+			import jing.net.server.ByteBuffer;
+			import jing.net.server.ServerEvent;
+			import jing.utils.data.StringUtil;
+			import jing.utils.debug.Consoles;
+			
+			import mx.collections.ArrayCollection;
 
             private var _server:ChatServer = new ChatServer();
 
@@ -152,7 +155,10 @@
                 {
                     targetId = _listUser.selectedItem.id;
                 }
+				
+
                 _server.chat(_txtMsg.text, targetId);
+
 
             }
 
@@ -182,7 +188,24 @@
                     btnConnect.enabled = false;
                     btnDis.enabled = true;
                 }
+				
+//				sentPart1();
+//				setTimeout(sentPart2,5000);
             }
+			
+			private function sentPart1():void
+			{
+				var ba:ByteBuffer = new ByteBuffer();
+				ba.writeShort(1);				
+				_server.sendBytes(ba);
+			}
+			
+			private function sentPart2():void
+			{
+				var ba:ByteBuffer = new ByteBuffer();
+				ba.writeShort(2);
+				_server.sendBytes(ba);
+			}
 
             protected function _client_closedHandler(event:Event):void
             {

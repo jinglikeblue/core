@@ -3,6 +3,7 @@ package chat;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Vector;
@@ -55,7 +56,7 @@ public class DataCenter
 	 * @param user
 	 */
 	public void putUser(User user)
-	{
+	{		
 		_client2UserMap.put(user.client, user);
 		_id2UserMap.put(user.id, user);
 	}
