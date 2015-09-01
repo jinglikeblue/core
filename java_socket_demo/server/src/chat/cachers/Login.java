@@ -13,9 +13,9 @@ import chat.Protocol.PROTOCOL_S2C;
 import chat.User;
 import core.events.EventDispatcher;
 import core.events.IEventListener;
-import core.net.Packet;
 import core.net.server.Client;
 import core.net.server.Server;
+import core.net.server.interfaces.IPacket;
 import core.net.server.interfaces.IProtocolCacher;
 
 public class Login implements IProtocolCacher, IEventListener
@@ -27,7 +27,7 @@ public class Login implements IProtocolCacher, IEventListener
 	}
 
 	@Override
-	public void onCacheProtocol(Client client, Packet packet) throws IOException
+	public void onCacheProtocol(Client client, IPacket packet) throws IOException
 	{
 		DataCenter dc = DataCenter.instance();
 		if(dc.containsClient(client))

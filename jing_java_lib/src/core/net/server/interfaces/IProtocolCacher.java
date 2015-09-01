@@ -3,7 +3,6 @@ package core.net.server.interfaces;
 
 import java.io.IOException;
 
-import core.net.Packet;
 import core.net.server.Client;
 
 /**
@@ -22,5 +21,5 @@ public interface IProtocolCacher
 	 * @param buff
 	 * @throws IOException
 	 */
-	void onCacheProtocol(Client client, Packet packet) throws IOException;
+	void onCacheProtocol(Client client, IPacket packet) throws IOException;
 }

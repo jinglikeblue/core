@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import core.events.EventDispatcher;
-import core.net.Packet;
+import core.net.server.interfaces.IPacket;
 import core.net.server.interfaces.IProtocolCacher;
 
 /**
@@ -23,6 +23,11 @@ import core.net.server.interfaces.IProtocolCacher;
  */
 public class Server extends EventDispatcher
 {
+
+	/**
+	 * 协议包类
+	 */
+	static public Class<?> packetClass = Packet.class;
 
 	private Server()
 	{
@@ -229,13 +234,12 @@ public class Server extends EventDispatcher
 							handleWrite(key);
 						}
 					}
-					catch(IOException e)
+					catch(IOException | InstantiationException | IllegalAccessException e)
 					{
 						keyIter.remove();
 						Console.log.error(e);
 						continue;
 					}
-
 					keyIter.remove();
 				}
 			}
@@ -300,7 +304,7 @@ public class Server extends EventDispatcher
 		Console.printInfo("one client connected");
 	}
 
-	private void handleRead(SelectionKey key) throws IOException
+	private void handleRead(SelectionKey key) throws IOException, InstantiationException, IllegalAccessException
 	{
 		SocketChannel clientChannel = (SocketChannel)key.channel();
 
@@ -320,12 +324,7 @@ public class Server extends EventDispatcher
 
 		if(bytesRead == -1)
 		{
-			client.dispose();
-			if(null == _onlineMap.remove(clientChannel))
-			{
-				throw new IOException("wrong client disconnect");
-			}
-			Console.printInfo("one client disconnected");
+			disconnectClient(client);
 		}
 		else
 		{
@@ -336,7 +335,11 @@ public class Server extends EventDispatcher
 
 			// 进行协议的拆包处理
 			int used = parse(ba, client);
-			if(used > 0)
+			if(used < 0)
+			{
+				disconnectClient(client);
+			}
+			else if(used > 0)
 			{
 				int remain = limit - used;
 				buff.clear();
@@ -353,6 +356,16 @@ public class Server extends EventDispatcher
 		}
 	}
 
+	private void disconnectClient(Client client) throws IOException
+	{
+		client.dispose();
+		if(null == _onlineMap.remove(client.channel()))
+		{
+			throw new IOException("wrong client disconnect");
+		}
+		Console.printInfo("one client disconnected");
+	}
+
 	public void handleWrite(SelectionKey key) throws IOException
 	{
 		// 这个用不上
@@ -363,24 +376,38 @@ public class Server extends EventDispatcher
 	 * 
 	 * @param buff
 	 * @param client
-	 * @return 返回时用到的长度
+	 * @return <ul>
+	 *         <li>< 0:出错</li>
+	 *         <li>>=0:使用字节数</li>
+	 *         </ul>
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
 	 */
-	private int parse(byte[] ba, Client client) throws IOException
+	private int parse(byte[] ba, Client client) throws IOException, InstantiationException, IllegalAccessException
 	{
 		int used = 0;
 
 		while(true)
 		{
-			Packet packet = Packet.unpack(ba, used);
-			if(null == packet)
+			IPacket packet = null;
+
+			packet = (IPacket)packetClass.newInstance();
+
+			int res = packet.unpack(ba, used);
+
+			if(res < 0)
+			{
+				return res;
+			}
+			else if(0 == res)
 			{
 				break;
 			}
 
 			client.onAcceptProtocol(packet);
-			used += packet.getLength();
+			used += res;
 
-			if(packet.getLength() == ba.length)
+			if(res == ba.length)
 			{
 				break;
 			}

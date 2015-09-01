@@ -23,6 +23,10 @@ public class Protocol
 	 	 * uint32 目标ID，0表示大厅聊天
 		 */
 		CHAT,
+		/**
+		 * websocket握手
+		 */
+		WS_SHAKE
 	}
 	
 	/**
@@ -46,7 +50,11 @@ public class Protocol
 			uint32 发送者ID
 			int8 是否是悄悄话
 		 */
-		MSG
+		MSG,
+		/**
+		 * websocket握手
+		 */
+		WS_SHAKE
 	}
 	
 	/**

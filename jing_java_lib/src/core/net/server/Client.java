@@ -6,10 +6,9 @@ import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
-import core.net.Packet;
 import core.net.server.Server.EVENT;
+import core.net.server.interfaces.IPacket;
 import core.net.server.interfaces.IProtocolCacher;
-
 
 /**
  * 连接到服务器的客户端
@@ -18,6 +17,7 @@ import core.net.server.interfaces.IProtocolCacher;
  */
 public class Client
 {
+
 	/**
 	 * 客户端的连接通道
 	 */
@@ -42,7 +42,7 @@ public class Client
 	 * @param buff 数据内容
 	 * @return 使用了的数据长度
 	 */
-	public void onAcceptProtocol(Packet packet) throws IOException
+	public void onAcceptProtocol(IPacket packet) throws IOException
 	{
 		// 获取协议号码
 		short code = packet.getProtoId();
@@ -68,11 +68,22 @@ public class Client
 		{
 			return;
 		}
-		
-		byte[] packet = Packet.pack(id, data);
-		ByteBuffer bb = ByteBuffer.wrap(packet);
+
+		IPacket packet = null;
+
 		try
-		{			
+		{
+			packet = (IPacket)Server.packetClass.newInstance();
+		}
+		catch(InstantiationException | IllegalAccessException e1)
+		{
+			Console.log.error(e1);
+		}
+
+		byte[] buff = packet.pack(id, data);
+		ByteBuffer bb = ByteBuffer.wrap(buff);
+		try
+		{
 			_channel.write(bb);
 		}
 		catch(IOException e)
@@ -80,7 +91,7 @@ public class Client
 			Console.log.error(e);
 		}
 	}
-	
+
 	/**
 	 * 向对应的客户端发送数据
 	 * 
@@ -107,11 +118,11 @@ public class Client
 			_channel.close();
 		}
 		catch(IOException e)
-		{			
+		{
 			Console.log.error("dispose client error [" + address + "]", e);
 		}
-		
-		// 广播一个客户端断开连接的消息	
+
+		// 广播一个客户端断开连接的消息
 		Server.instance().dispatchEvent(EVENT.CLIENT_DISCONNECT.name(), this);
 		Console.log.log("client " + address.toString() + " disposed");
 	}

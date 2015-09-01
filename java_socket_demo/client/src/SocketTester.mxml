@@ -193,19 +193,19 @@
 //				setTimeout(sentPart2,5000);
             }
 			
-			private function sentPart1():void
-			{
-				var ba:ByteBuffer = new ByteBuffer();
-				ba.writeShort(1);				
-				_server.sendBytes(ba);
-			}
-			
-			private function sentPart2():void
-			{
-				var ba:ByteBuffer = new ByteBuffer();
-				ba.writeShort(2);
-				_server.sendBytes(ba);
-			}
+//			private function sentPart1():void
+//			{
+//				var ba:ByteBuffer = new ByteBuffer();
+//				ba.writeShort(1);				
+//				_server.sendBytes(ba);
+//			}
+//			
+//			private function sentPart2():void
+//			{
+//				var ba:ByteBuffer = new ByteBuffer();
+//				ba.writeShort(2);
+//				_server.sendBytes(ba);
+//			}
 
             protected function _client_closedHandler(event:Event):void
             {
