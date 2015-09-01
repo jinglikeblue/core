@@ -133,6 +133,7 @@ public class Server extends EventDispatcher
 	{
 		new Thread()
 		{
+
 			public void run()
 			{
 				File shutdownFile = new File("del2stop.server");
@@ -153,7 +154,7 @@ public class Server extends EventDispatcher
 					try
 					{
 						if(shutdownFile.exists())
-						{							
+						{
 							Thread.sleep(1000);
 						}
 						else
@@ -229,7 +230,7 @@ public class Server extends EventDispatcher
 						}
 					}
 					catch(IOException e)
-					{												
+					{
 						keyIter.remove();
 						Console.log.error(e);
 						continue;
@@ -307,7 +308,15 @@ public class Server extends EventDispatcher
 
 		ByteBuffer buff = (ByteBuffer)key.attachment();
 
-		int bytesRead = clientChannel.read(buff);
+		int bytesRead = -1;
+		try
+		{
+			bytesRead = clientChannel.read(buff);
+		}
+		catch(IOException e)
+		{
+			bytesRead = -1;
+		}
 
 		if(bytesRead == -1)
 		{
@@ -375,11 +384,6 @@ public class Server extends EventDispatcher
 			{
 				break;
 			}
-
-			// 处理粘包
-//			byte[] remainBytes = new byte[ba.length - packet.getLength()];
-//			System.arraycopy(ba, packet.getLength(), remainBytes, 0, remainBytes.length);
-//			ba = remainBytes;
 		}
 
 		return used;
