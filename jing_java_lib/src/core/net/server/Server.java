@@ -225,20 +225,13 @@ public class Server extends EventDispatcher
 
 						if(key.isReadable())
 						{
-							// 接收到数据
-							handleRead(key);
-						}
-
-						if(key.isValid() && key.isWritable())
-						{
-							handleWrite(key);
+							// 接收到数据							
+							handleRead((Client)key.attachment());
 						}
 					}
 					catch(IOException | InstantiationException | IllegalAccessException e)
 					{
-						keyIter.remove();
 						Console.log.error(e);
-						continue;
 					}
 					keyIter.remove();
 				}
@@ -284,38 +277,35 @@ public class Server extends EventDispatcher
 
 	// ---------------------协议处理相关代码--------------------------------
 
-	private void handleAccept(SelectionKey key) throws IOException
+	private void handleAccept(SelectionKey key) throws IOException, InstantiationException, IllegalAccessException
 	{
 		// 获取客户端的SocketChannel
 		SocketChannel clientChannel = ((ServerSocketChannel)key.channel()).accept();
-		// 设置为非阻塞模式
-		clientChannel.configureBlocking(false);
-		// 向给定的选择器注册此通道，返回一个选择键
-		clientChannel.register(key.selector(), SelectionKey.OP_READ, ByteBuffer.allocate(_buffSize));
-
-		Client client = new Client(clientChannel);
+		
 		if(_onlineMap.get(clientChannel) != null)
 		{
 			throw new IOException("can't accept same key twice");
-		}
-		_onlineMap.put(clientChannel, client);
+		}		
+		Client client = new Client(clientChannel, ByteBuffer.allocate(_buffSize));
+		_onlineMap.put(clientChannel, client);		
+		
+		// 设置为非阻塞模式
+		clientChannel.configureBlocking(false);
+		// 向给定的选择器注册此通道，返回一个选择键
+		clientChannel.register(key.selector(), SelectionKey.OP_READ, client);
 
 		this.dispatchEvent(EVENT.CLIENT_CONNECTED.name(), client);
 		Console.printInfo("one client connected");
 	}
 
-	private void handleRead(SelectionKey key) throws IOException, InstantiationException, IllegalAccessException
+	private void handleRead(Client client) throws InstantiationException, IllegalAccessException, IOException
 	{
-		SocketChannel clientChannel = (SocketChannel)key.channel();
-
-		Client client = _onlineMap.get(clientChannel);
-
-		ByteBuffer buff = (ByteBuffer)key.attachment();
+		ByteBuffer buff = client.buff();
 
 		int bytesRead = -1;
 		try
 		{
-			bytesRead = clientChannel.read(buff);
+			bytesRead = client.channel().read(buff);
 		}
 		catch(IOException e)
 		{

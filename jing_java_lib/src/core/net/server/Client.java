@@ -30,10 +30,22 @@ public class Client
 	{
 		return _channel;
 	}
+	
+	private ByteBuffer _buff = null;
+	
+	/**
+	 * 缓冲区
+	 * @return
+	 */
+	public ByteBuffer buff()
+	{
+		return _buff;
+	}
 
-	public Client(SocketChannel channel)
+	public Client(SocketChannel channel, ByteBuffer buff)
 	{
 		_channel = channel;
+		_buff = buff;
 	}
 
 	/**
