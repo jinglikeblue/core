@@ -56,6 +56,28 @@ public class MySql
 	{
 		return _conn;
 	}
+	
+	/**
+	 * Mysql是否连接
+	 * @return
+	 */
+	public boolean isConnected()
+	{
+		boolean isConnected = false;		
+		try
+		{
+			if(_conn != null && false == _conn.isClosed())
+			{
+				isConnected = true;
+			}
+		}
+		catch(SQLException e)
+		{			
+			e.printStackTrace();
+			isConnected = false;
+		}
+		return isConnected;
+	}
 
 	public MySql()
 	{
@@ -139,21 +161,24 @@ public class MySql
 	 */
 	public int update(String sql)
 	{
+		int changedCount = -1;
+		
 		if(createConnection())
 		{
 
 			try
 			{
-				return _conn.createStatement().executeUpdate(sql);
+				changedCount = _conn.createStatement().executeUpdate(sql);
 			}
 			catch(SQLException e)
 			{
 				e.printStackTrace();
+				changedCount = -1;
 			}
 
 		}
 
-		return -1;
+		return changedCount;
 	}
 
 	/**
@@ -166,7 +191,6 @@ public class MySql
 	{
 		if(createConnection())
 		{
-
 			try
 			{
 				return _conn.createStatement().executeQuery(sql);
