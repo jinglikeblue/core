@@ -1,4 +1,4 @@
-package core.db.pool;
+package core.db.worker;
 
 import java.sql.ResultSet;
 

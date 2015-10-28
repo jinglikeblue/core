@@ -1,5 +1,5 @@
 
-package core.db.pool;
+package core.db.worker;
 
 /**
  * Mysql数据对象
